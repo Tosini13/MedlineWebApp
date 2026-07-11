@@ -12,6 +12,7 @@ paths = [
   '''(^|/)supabase/config\.toml$''',
 ]
 regexes = [
-  # Local Supabase demo anon/service keys are non-sensitive, well-known values.
+  # Local Supabase demo keys are non-sensitive, well-known values.
+  '''VITE_SUPABASE_KEY=.*''',
   '''VITE_SUPABASE_ANON_KEY=.*''',
 ]

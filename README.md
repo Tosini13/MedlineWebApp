@@ -23,7 +23,7 @@ with **Vitest**, and documented in **Storybook**.
 
 ```bash
 pnpm install
-cp .env.example .env        # fill in your Supabase project values
+cp .env.example .env        # VITE_SUPABASE_URL + VITE_SUPABASE_KEY (publishable)
 pnpm dev                    # http://localhost:3000
 ```
 

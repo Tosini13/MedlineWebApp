@@ -9,6 +9,7 @@ alwaysApply: false
 ## Access pattern
 
 - Get clients only from `SupabaseProvider.browser()` / `SupabaseProvider.server(...)`.
+- Configure with `VITE_SUPABASE_URL` + `VITE_SUPABASE_KEY` (publishable key, `sb_publishable_...`).
 - All DB/Storage access goes through a `*Repository` extending `BaseRepository`.
 - Repositories map DB rows (snake_case) to domain types (camelCase in `src/lib/domain/types.ts`).
 - Never leak raw Postgres errors to the client; wrap via `this.fail(...)` (`RepositoryError`).

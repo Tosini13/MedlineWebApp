@@ -17,31 +17,37 @@ export interface CookieAdapter {
 }
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+/** Publishable key (`sb_publishable_...`). Falls back to legacy `VITE_SUPABASE_ANON_KEY`. */
+const supabasePublishableKey = (import.meta.env.VITE_SUPABASE_KEY ??
+  import.meta.env.VITE_SUPABASE_ANON_KEY) as string | undefined;
 
 /**
  * The single object-oriented seam in the codebase (per project convention).
  * Encapsulates creation of both the browser and server Supabase clients so the
  * rest of the app can stay purely functional.
+ *
+ * Uses `@supabase/ssr` (not a bare `createClient`) so auth sessions live in
+ * HttpOnly cookies and work across SSR + server functions — required for
+ * TanStack Start. The publishable key is safe to expose to the browser.
  */
-function requireConfig(): { url: string; anonKey: string } {
-  if (!supabaseUrl || !supabaseAnonKey) {
+function requireConfig(): { url: string; publishableKey: string } {
+  if (!supabaseUrl || !supabasePublishableKey) {
     throw new Error(
-      "Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.",
+      "Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_KEY in your .env file.",
     );
   }
-  return { url: supabaseUrl, anonKey: supabaseAnonKey };
+  return { url: supabaseUrl, publishableKey: supabasePublishableKey };
 }
 
 // biome-ignore lint/complexity/noStaticOnlyClass: the data provider is intentionally OOP to encapsulate client lifecycle/memoisation
 export class SupabaseProvider {
   private static browserClient: TypedSupabaseClient | null = null;
 
-  /** Memoised browser client. Reads the anon key only; safe for the client bundle. */
+  /** Memoised browser client. Uses the publishable key only; safe for the client bundle. */
   static browser(): TypedSupabaseClient {
-    const { url, anonKey } = requireConfig();
+    const { url, publishableKey } = requireConfig();
     if (!SupabaseProvider.browserClient) {
-      SupabaseProvider.browserClient = createBrowserClient<Database>(url, anonKey);
+      SupabaseProvider.browserClient = createBrowserClient<Database>(url, publishableKey);
     }
     return SupabaseProvider.browserClient;
   }
@@ -51,8 +57,8 @@ export class SupabaseProvider {
    * entrypoint so this module never imports server-only APIs directly.
    */
   static server(cookies: CookieAdapter): TypedSupabaseClient {
-    const { url, anonKey } = requireConfig();
-    return createServerClient<Database>(url, anonKey, {
+    const { url, publishableKey } = requireConfig();
+    return createServerClient<Database>(url, publishableKey, {
       cookies: {
         getAll: () => cookies.getAll(),
         setAll: (toSet) => cookies.setAll(toSet),

@@ -1,11 +1,11 @@
 /**
  * Seeds a Supabase project with a demo user and sample timelines/events.
  *
- * Requires a service-role key (admin) — never ship this key to the client.
+ * Requires a secret key (admin) — never ship this key to the client.
  * Run with:  pnpm seed
  *
  * Reads config from the environment (loads `.env` via Node's built-in loader):
- *   VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+ *   VITE_SUPABASE_URL, SUPABASE_SECRET_KEY
  * Optional: SEED_EMAIL, SEED_PASSWORD (defaults below).
  */
 import { createClient } from "@supabase/supabase-js";
@@ -18,18 +18,19 @@ try {
 }
 
 const url = process.env.VITE_SUPABASE_URL;
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+/** Secret key (`sb_secret_...`). Falls back to legacy `SUPABASE_SERVICE_ROLE_KEY`. */
+const secretKey = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 const email = process.env.SEED_EMAIL ?? "demo@medline.app";
 const password = process.env.SEED_PASSWORD ?? "Demo-Passw0rd!";
 
-if (!url || !serviceRoleKey) {
+if (!url || !secretKey) {
   console.error(
-    "Missing VITE_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY. Set them in .env before seeding.",
+    "Missing VITE_SUPABASE_URL or SUPABASE_SECRET_KEY. Set them in .env before seeding.",
   );
   process.exit(1);
 }
 
-const admin = createClient<Database>(url, serviceRoleKey, {
+const admin = createClient<Database>(url, secretKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
 

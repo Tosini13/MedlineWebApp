@@ -43,7 +43,7 @@ This document is the single source of truth for the plan, architecture, and conv
 | Firestore document refs | Postgres `documents` table (FK → `events`) + Storage objects |
 | Firebase Storage | Supabase Storage private `documents` bucket + signed URLs |
 | Client SDK calls in `services/*` | Repositories + `createServerFn` server functions |
-| `EXPO_PUBLIC_*` env | `VITE_*` env (+ server-only `SUPABASE_SERVICE_ROLE_KEY`) |
+| `EXPO_PUBLIC_*` env | `VITE_*` env (+ server-only `SUPABASE_SECRET_KEY`) |
 
 Event type codes (`MA`, `O`, `MT`, `S`, `other`) are preserved for data compatibility.
 
@@ -146,12 +146,32 @@ pnpm db:types             # regenerate database.types.ts
 
 ## 10. What You Need to Prepare (in parallel)
 
-1. **Create a Supabase project** (cloud) and grab: Project URL, `anon` key, `service_role` key.
-2. Populate `.env` from `.env.example` with those values.
+1. **Create a Supabase project** (cloud) and grab: Project URL, **publishable key**
+   (`sb_publishable_...`), and **secret key** (`sb_secret_...`) from
+   **Settings → API → API Keys**.
+2. Populate `.env` from `.env.example`:
+   - `VITE_SUPABASE_URL` — project URL
+   - `VITE_SUPABASE_KEY` — publishable key (client-safe)
+   - `SUPABASE_SECRET_KEY` — secret key (server/scripts only)
 3. In Supabase Auth settings: enable **email/password**, set **Site URL** and redirect URLs
    (`http://localhost:3000` for dev), and configure email templates for password reset.
 4. Apply the migrations (`pnpm db:push`) so tables, RLS policies, and the `documents` bucket exist.
 5. For CI: no extra secrets required for gitleaks (uses the default `GITHUB_TOKEN`).
+
+### Why this differs from Supabase's generic Vite prompt
+
+Supabase's dashboard onboarding suggests a bare `createClient` in `src/utils/supabase.ts` and
+querying tables directly from route loaders. **MedlineWebApp intentionally does not follow that
+pattern** because it is an SSR app handling sensitive health data:
+
+| Supabase prompt | MedlineWebApp (correct for this app) |
+|---|---|
+| `VITE_SUPABASE_KEY` + `createClient` | Same env var name; uses `@supabase/ssr` instead |
+| Direct `supabase.from(...)` in loaders | Server functions (`*.api.ts`) + repositories |
+| Browser session in localStorage | HttpOnly cookie sessions via `SupabaseProvider.server()` |
+| No RLS enforcement layer | `requireUser()` on every server function + Postgres RLS |
+
+The publishable key and project URL are the same; only the client wiring differs.
 
 ---
 
