@@ -1,0 +1,22 @@
+---
+description: Security rules for handling sensitive health data
+alwaysApply: true
+---
+
+# Security (sensitive health data)
+
+This app stores personal medical information. Treat every change as security-relevant.
+
+- **Auth everywhere**: server functions that touch user data call `requireUser()`. UI guards
+  (`_authenticated` layout) are convenience only, never the sole gate.
+- **Validate all input** with zod in the server function `.validator(...)` before use.
+- **RLS is mandatory** for any new table; owner-scope it and add matching Storage policies.
+- **Documents** are private: never expose public URLs; use signed URLs with type/size limits
+  (`ALLOWED_MIME_TYPES`, `MAX_UPLOAD_BYTES` in `documents.schema.ts`).
+- **Secrets**: only `VITE_*` values may reach the client. Never import the service-role key into
+  client-reachable modules. Never commit real secrets (`.env` is gitignored; `.env.example` only).
+- **HTTP headers/CSP** are centralized in `src/lib/server/security-headers.ts` (wired via
+  `src/start.ts`). Update the CSP `connect-src` when adding new external origins.
+- **Auth endpoints are rate-limited** (`src/lib/server/rate-limit.ts`); keep it on sign-in/up/reset.
+- Auth responses stay generic to avoid user enumeration.
+- CI runs `pnpm audit` + gitleaks; keep them green.

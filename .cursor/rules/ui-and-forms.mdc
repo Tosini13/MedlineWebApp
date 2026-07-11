@@ -1,0 +1,28 @@
+---
+description: shadcn/ui, Tailwind v4 and form conventions
+globs: src/**/*.tsx
+alwaysApply: false
+---
+
+# UI & Forms
+
+## Components
+
+- Build UI from shadcn primitives in `src/components/ui`; compose app widgets in `src/components/app`.
+- Add new shadcn components with the CLI (`pnpm dlx shadcn@latest add <name>`); do not hand-roll them.
+- Use `cn()` from `@/lib/utils` to merge classes. Use semantic design tokens
+  (`bg-background`, `text-muted-foreground`, `border`, etc.), never hard-coded hex in JSX.
+- Icons come from `lucide-react`.
+
+## Forms (react-hook-form + zod)
+
+- Use `useForm<Input, unknown, Output>({ resolver: zodResolver(schema) })`.
+- **Keep the form schema's input and output types identical** (e.g. keep optional fields as
+  `string | undefined`, do not `.transform()` to `null`). Apply `null`/shape transforms in the
+  `create*/update*` schemas used by the server function instead — otherwise shadcn `FormField`
+  control types break.
+
+## Accessibility
+
+- Every interactive element is keyboard reachable and labelled. Prefer semantic elements;
+  only use ARIA roles for genuinely custom widgets and justify with a `biome-ignore`.

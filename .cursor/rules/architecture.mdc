@@ -1,0 +1,28 @@
+---
+description: Core architecture and paradigm rules for MedlineWebApp
+alwaysApply: true
+---
+
+# MedlineWebApp Architecture
+
+Stack: TanStack Start (SSR + file-based Router + Query), Supabase (Postgres/Auth/Storage),
+shadcn/ui on Tailwind v4, TypeScript (strict), Biome, Vitest, Storybook.
+
+## Paradigm
+
+- **Functional-first**: components, hooks, server functions, and utilities are plain functions.
+- **OOP only for the data provider**: the single exception is `src/lib/supabase/*`
+  (`SupabaseProvider` + `*Repository` classes). Do NOT introduce classes elsewhere.
+
+## Layering (do not skip layers)
+
+1. UI components (`src/components`, `src/features/*/components`) — presentational, no data access.
+2. Query hooks (`*.queries.ts`) — React Query wrappers calling server functions.
+3. Server functions (`*.api.ts`) — `createServerFn`, auth + zod validation, call repositories.
+4. Repositories (`src/lib/supabase/repositories`) — the ONLY place that talks to Supabase.
+
+## Folder conventions
+
+- Feature code lives in `src/features/<feature>/` (`*.schema.ts`, `*.api.ts`, `*.queries.ts`, `components/`).
+- Shared UI in `src/components/ui` (shadcn) and `src/components/app` (composed app widgets).
+- Import via the `@/` alias, never long relative chains.

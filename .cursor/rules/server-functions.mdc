@@ -1,0 +1,32 @@
+---
+description: TanStack Start server function + import-protection rules
+globs: src/**/*.api.ts,src/routes/**/*.tsx,src/**/*.queries.ts
+alwaysApply: false
+---
+
+# Server Functions & Import Protection
+
+## File naming (critical)
+
+- Files that export `createServerFn` results **must be `*.api.ts`** — they are imported by
+  client code via the RPC bridge.
+- **Never** use the `*.server.ts` suffix for anything a client module imports. The suffix
+  `**/*.server.*` is hard-denied in the client bundle and the build will fail.
+- Truly server-only helpers (e.g. `src/lib/server/*`, `src/lib/supabase/server.ts`) may import
+  `@tanstack/react-start/server`, but only ever be referenced **inside** `createServerFn` handlers
+  so they are tree-shaken out of the client bundle.
+
+## Handler rules
+
+```ts
+export const createLine = createServerFn({ method: "POST" })
+  .validator((d: unknown) => createLineSchema.parse(d)) // zod on every input
+  .handler(async ({ data }) => {
+    const { user, repos } = await requireUser();         // auth enforced here
+    return repos.lines.create(user.id, data);            // repositories only
+  });
+```
+
+- Every mutating/reading server function calls `requireUser()` (or `getServerContext()` when public).
+- Keep server-only imports (`getRequestUrl`, cookies, etc.) INSIDE the handler body.
+- Client mutation variable types use `z.input<typeof schema>`; the handler validator applies transforms.

@@ -1,0 +1,27 @@
+---
+description: Supabase data provider, repositories, and RLS rules
+globs: src/lib/supabase/**/*.ts,supabase/**/*.sql
+alwaysApply: false
+---
+
+# Supabase Data Provider
+
+## Access pattern
+
+- Get clients only from `SupabaseProvider.browser()` / `SupabaseProvider.server(...)`.
+- All DB/Storage access goes through a `*Repository` extending `BaseRepository`.
+- Repositories map DB rows (snake_case) to domain types (camelCase in `src/lib/domain/types.ts`).
+- Never leak raw Postgres errors to the client; wrap via `this.fail(...)` (`RepositoryError`).
+
+## Security
+
+- Every table has **RLS enabled and forced**; ownership is scoped through `lines.user_id`.
+- Documents live in a **private** Storage bucket; access is via short-lived **signed URLs** only.
+- Storage object paths are `{user_id}/{event_id}/{file}` and RLS checks the leading owner segment.
+- Keep the migration files (`supabase/migrations/*.sql`) as the source of truth; regenerate types
+  with `pnpm db:types` after schema changes.
+
+## Enums
+
+- `event_type` values (`MA`, `O`, `MT`, `S`, `other`) come from `EVENT_TYPE_CODES` (const tuple)
+  in `src/lib/domain/event-type.ts` — update that tuple + the SQL enum together.

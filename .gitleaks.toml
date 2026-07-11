@@ -1,0 +1,17 @@
+# Gitleaks configuration for MedlineWebApp.
+# Extends the upstream default ruleset and adds project-specific allowlisting.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Files and paths that intentionally contain placeholder secrets."
+paths = [
+  '''\.env\.example$''',
+  '''(^|/)README\.md$''',
+  '''(^|/)docs\.md$''',
+  '''(^|/)supabase/config\.toml$''',
+]
+regexes = [
+  # Local Supabase demo anon/service keys are non-sensitive, well-known values.
+  '''VITE_SUPABASE_ANON_KEY=.*''',
+]

@@ -1,0 +1,23 @@
+---
+description: Testing (Vitest) and Storybook conventions
+globs: src/**/*.test.ts,src/**/*.test.tsx,src/**/*.stories.tsx,.storybook/**
+alwaysApply: false
+---
+
+# Testing & Storybook
+
+## Vitest
+
+- Unit tests use Vitest + Testing Library (`jsdom`), setup in `src/test/setup.ts`.
+- Test pure logic (schemas, mappers, formatters) and component behavior; mock repositories,
+  never hit real Supabase.
+- Run with `pnpm test` (CI) / `pnpm test:watch` (local).
+
+## Storybook
+
+- Write stories for reusable presentational components in `src/components/ui`,
+  `src/components/app`, and feature `components/` folders (`*.stories.tsx`).
+- Storybook uses its own Vite config (`.storybook/vite.config.ts`) that omits the TanStack Start
+  plugin. Do not import router/server-only modules into stories — keep stories presentational.
+- The a11y addon is enabled; fix reported violations.
+- Verify with `pnpm build-storybook` (also run in CI).
