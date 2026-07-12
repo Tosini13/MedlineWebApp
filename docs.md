@@ -211,10 +211,11 @@ To confirm the link: `supabase projects list` or check for `supabase/.temp/proje
 1. Push the repo to GitHub.
 2. Import the repository at [vercel.com/new](https://vercel.com/new).
 3. Framework preset: **TanStack Start** (not standalone Nitro, not Vite).
-4. **Output Directory:** the Vercel UI may default to `dist` and not allow empty — that's
-   fine. This repo's `vercel.json` overrides it to **`.vercel/output`** (Nitro's Build Output
-   API). You do **not** need to change the UI field manually if `vercel.json` is committed.
-5. Node.js version: **22**.
+4. **Output Directory:** leave the UI default (`dist`) — do **not** set `.vercel/output` here.
+   Nitro writes the Build Output API to `.vercel/output` automatically; overriding
+   `outputDirectory` in `vercel.json` breaks SSR deploys. The repo only sets
+   `"framework": "tanstack-start"` in `vercel.json`.
+5. Node.js version: **24** (matches `package.json` `engines` and GitHub Actions).
 6. Add **Environment variables** (Production + Preview):
 
 | Variable | Required | Notes |
@@ -261,14 +262,15 @@ must be allowlisted.
 
 ### Troubleshooting: `508 INFINITE_LOOP_DETECTED`
 
-Usually caused by Vercel serving from **`dist`** (static) while Nitro also registers
-serverless routes — requests bounce until Vercel detects a loop. Fix:
+Usually caused by a **wrong `outputDirectory`** conflicting with Nitro's Build Output API.
+Do **not** set `outputDirectory` to `.vercel/output` or `dist` in `vercel.json`.
 
-1. Commit and deploy the repo's `vercel.json` (sets `framework: tanstack-start` and
-   `outputDirectory: .vercel/output`).
+Fix:
+
+1. Commit the repo's minimal `vercel.json` (`{ "framework": "tanstack-start" }` only).
 2. Vercel → Project → **Settings → General → Build & Development**
 3. Framework preset: **TanStack Start**
-4. If Output Directory still shows `dist` in the UI, ignore it — `vercel.json` wins on deploy.
+4. Node.js: **24**
 5. Redeploy and check build logs for: `Generated .vercel/output/nitro.json` with `"preset": "vercel"`.
 
 ---

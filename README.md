@@ -36,11 +36,11 @@ pnpm db:types               # regenerate typed schema
 
 ## Deploy (Vercel + GitHub)
 
-Nitro is configured for Vercel (`vercel.json` sets `outputDirectory: .vercel/output`). Full
-checklist: **[docs.md § Deploy](./docs.md#11-deploy-to-vercel-github)**.
+Nitro is configured for Vercel (`vite.config.ts` uses the `vercel` preset when `VERCEL=1`).
+Full checklist: **[docs.md § Deploy](./docs.md#11-deploy-to-vercel-github)**.
 
-**Note:** Vercel's UI may default Output Directory to `dist` — that's for static apps. This
-project overrides it via `vercel.json`; keep Framework preset on **TanStack Start**.
+**Note:** Do not set `outputDirectory` in `vercel.json` for SSR — Vercel consumes
+`.vercel/output` automatically when Framework preset is **TanStack Start**.
 
 **Apply database migrations to production** (from your machine, before or after first Vercel deploy):
 
