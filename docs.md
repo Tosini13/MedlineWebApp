@@ -220,7 +220,11 @@ To confirm the link: `supabase projects list` or check for `supabase/.temp/proje
 | Variable | Required | Notes |
 |---|---|---|
 | `VITE_SUPABASE_URL` | Yes | Supabase project URL |
-| `VITE_SUPABASE_KEY` | Yes | Publishable key (`sb_publishable_...`) |
+| `VITE_SUPABASE_KEY` | Yes* | Publishable key (`sb_publishable_...`) |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Yes* | Same key — name used by Vercel Supabase integration |
+
+\* One publishable key env var is required. The app accepts `VITE_SUPABASE_KEY`,
+`VITE_SUPABASE_PUBLISHABLE_KEY`, or legacy `VITE_SUPABASE_ANON_KEY`.
 | `FIREBASE_SERVICE_ACCOUNT` | No | Inline JSON for Account-page legacy migration |
 | `FIREBASE_STORAGE_BUCKET` | No | Only if bucket ≠ `{project_id}.appspot.com` |
 

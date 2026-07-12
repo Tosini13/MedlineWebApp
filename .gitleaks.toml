@@ -14,5 +14,6 @@ paths = [
 regexes = [
   # Local Supabase demo keys are non-sensitive, well-known values.
   '''VITE_SUPABASE_KEY=.*''',
+  '''VITE_SUPABASE_PUBLISHABLE_KEY=.*''',
   '''VITE_SUPABASE_ANON_KEY=.*''',
 ]

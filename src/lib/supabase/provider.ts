@@ -17,8 +17,9 @@ export interface CookieAdapter {
 }
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-/** Publishable key (`sb_publishable_...`). Falls back to legacy `VITE_SUPABASE_ANON_KEY`. */
+/** Publishable key (`sb_publishable_...`). */
 const supabasePublishableKey = (import.meta.env.VITE_SUPABASE_KEY ??
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ??
   import.meta.env.VITE_SUPABASE_ANON_KEY) as string | undefined;
 
 /**
@@ -33,7 +34,7 @@ const supabasePublishableKey = (import.meta.env.VITE_SUPABASE_KEY ??
 function requireConfig(): { url: string; publishableKey: string } {
   if (!supabaseUrl || !supabasePublishableKey) {
     throw new Error(
-      "Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_KEY in your .env file.",
+      "Supabase is not configured. Set VITE_SUPABASE_URL and a publishable key (VITE_SUPABASE_KEY, VITE_SUPABASE_PUBLISHABLE_KEY, or VITE_SUPABASE_ANON_KEY).",
     );
   }
   return { url: supabaseUrl, publishableKey: supabasePublishableKey };
