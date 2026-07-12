@@ -1,5 +1,6 @@
 # Supabase project configuration.
 # Link to your cloud project with: supabase link --project-ref <your-ref>
+# Then run: pnpm db:push
 project_id = "medline-web-app"
 
 [api]

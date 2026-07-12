@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
@@ -58,6 +61,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
     "jsdom": "^29.1.1",
+    "nitro": "npm:nitro-nightly@4.0.0-20251010-091516-7cafddba",
     "storybook": "^10.4.6",
     "tailwindcss": "^4.3.2",
     "tsx": "^4.23.0",

@@ -175,7 +175,88 @@ The publishable key and project URL are the same; only the client wiring differs
 
 ---
 
-## 11. Status & Roadmap
+## 11. Deploy to Vercel (GitHub)
+
+The app uses **TanStack Start** with the **Nitro** Vite plugin so server functions and SSR run on
+Vercel Functions. Nitro is already wired in `vite.config.ts`.
+
+### One-time: link your machine to production Supabase
+
+`pnpm db:push` runs on **your computer**, not on Vercel. It applies SQL migrations from
+`supabase/migrations/` to whichever Supabase project you have linked.
+
+```bash
+# 1. Install the Supabase CLI (once) — https://supabase.com/docs/guides/cli
+brew install supabase/tap/supabase   # macOS; or use npm/npx
+
+# 2. Log in (opens browser)
+supabase login
+
+# 3. Link this repo to your cloud project
+#    Project ref = the ID in your dashboard URL:
+#    https://supabase.com/dashboard/project/<project-ref>
+supabase link --project-ref <your-project-ref>
+
+# 4. Push migrations (tables, RLS, storage bucket, API grants)
+pnpm db:push
+```
+
+Re-run `pnpm db:push` whenever new files appear in `supabase/migrations/`. Vercel deploys do **not**
+run migrations automatically — schema changes are always a separate step from app deploy.
+
+To confirm the link: `supabase projects list` or check for `supabase/.temp/project-ref` after linking.
+
+### Vercel project setup
+
+1. Push the repo to GitHub.
+2. Import the repository at [vercel.com/new](https://vercel.com/new).
+3. Vercel should detect **TanStack Start** (Nitro). If not, set:
+   - **Build command:** `pnpm build`
+   - **Install command:** `pnpm install`
+   - **Node.js version:** 22
+4. Add **Environment variables** (Production + Preview):
+
+| Variable | Required | Notes |
+|---|---|---|
+| `VITE_SUPABASE_URL` | Yes | Supabase project URL |
+| `VITE_SUPABASE_KEY` | Yes | Publishable key (`sb_publishable_...`) |
+| `FIREBASE_SERVICE_ACCOUNT` | No | Inline JSON for Account-page legacy migration |
+| `FIREBASE_STORAGE_BUCKET` | No | Only if bucket ≠ `{project_id}.appspot.com` |
+
+Do **not** set `SUPABASE_SECRET_KEY` on Vercel unless you run admin scripts there (not needed for
+normal app traffic). Do **not** use `FIREBASE_SERVICE_ACCOUNT_PATH` on Vercel — use inline JSON.
+
+### Supabase Auth (production URLs)
+
+In **Supabase → Authentication → URL configuration**:
+
+| Setting | Example |
+|---|---|
+| Site URL | `https://your-app.vercel.app` |
+| Redirect URLs | `https://your-app.vercel.app/**` |
+| | `https://*.vercel.app/**` (preview deploys) |
+| | `http://localhost:3000/**` (local dev) |
+
+Password reset links target `/update-password`; signup confirmation uses `/login`. Both origins
+must be allowlisted.
+
+### Post-deploy smoke test
+
+- Sign up / sign in
+- Create a timeline and event
+- Upload a **small** document (Vercel serverless body limit is ~4.5 MB; app allows up to 10 MB)
+- Password reset email flow
+- Account page → Firebase migration (if `FIREBASE_SERVICE_ACCOUNT` is set)
+
+### Known production caveats
+
+- **Upload size:** large files may fail on Vercel server functions; test with files under 4 MB.
+- **Auth rate limits:** in-memory per instance (`src/lib/server/rate-limit.ts`), not global.
+- **CSP:** `connect-src` includes your Supabase origin from `VITE_SUPABASE_URL` at build time.
+
+---
+
+## 12. Status & Roadmap
 
 Implemented: scaffold, Supabase schema + storage + RLS, data provider + repositories, auth flows,
 lines & events CRUD with timeline UI, documents (upload/list/download/delete), cross-entity search,

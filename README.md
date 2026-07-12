@@ -34,6 +34,21 @@ pnpm db:push                # apply migrations (tables, RLS, storage bucket)
 pnpm db:types               # regenerate typed schema
 ```
 
+## Deploy (Vercel + GitHub)
+
+Nitro is configured for Vercel. Full checklist: **[docs.md § Deploy](./docs.md#11-deploy-to-vercel-github)**.
+
+**Apply database migrations to production** (from your machine, before or after first Vercel deploy):
+
+```bash
+supabase login
+supabase link --project-ref <your-project-ref>   # from Supabase dashboard URL
+pnpm db:push                                     # applies supabase/migrations/*.sql
+```
+
+Then connect the GitHub repo in Vercel and set `VITE_SUPABASE_URL` + `VITE_SUPABASE_KEY` in
+project environment variables. Update Supabase Auth redirect URLs for your `*.vercel.app` domain.
+
 ## Scripts
 
 | Script | Description |
