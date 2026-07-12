@@ -210,9 +210,10 @@ To confirm the link: `supabase projects list` or check for `supabase/.temp/proje
 
 1. Push the repo to GitHub.
 2. Import the repository at [vercel.com/new](https://vercel.com/new).
-3. Framework preset: **TanStack Start** (not standalone Nitro).
-4. **Leave “Output Directory” empty** — Nitro writes to `.vercel/output` during build.
-   Do **not** set `dist`, `.output`, or `public` as the output directory.
+3. Framework preset: **TanStack Start** (not standalone Nitro, not Vite).
+4. **Output Directory:** the Vercel UI may default to `dist` and not allow empty — that's
+   fine. This repo's `vercel.json` overrides it to **`.vercel/output`** (Nitro's Build Output
+   API). You do **not** need to change the UI field manually if `vercel.json` is committed.
 5. Node.js version: **22**.
 6. Add **Environment variables** (Production + Preview):
 
@@ -256,18 +257,15 @@ must be allowlisted.
 
 ### Troubleshooting: `508 INFINITE_LOOP_DETECTED`
 
-Usually caused by a **wrong Output Directory** in Vercel project settings conflicting with
-Nitro's `.vercel/output` build. Fix:
+Usually caused by Vercel serving from **`dist`** (static) while Nitro also registers
+serverless routes — requests bounce until Vercel detects a loop. Fix:
 
-1. Vercel → Project → **Settings → General → Build & Development**
-2. Clear **Output Directory** (leave blank)
+1. Commit and deploy the repo's `vercel.json` (sets `framework: tanstack-start` and
+   `outputDirectory: .vercel/output`).
+2. Vercel → Project → **Settings → General → Build & Development**
 3. Framework preset: **TanStack Start**
-4. Build command: `pnpm build`
-5. Redeploy
-
-The repo's `vercel.json` sets `NITRO_PRESET=vercel` so Nitro emits `.vercel/output` during
-Vercel builds. Ensure `VITE_SUPABASE_URL` and `VITE_SUPABASE_KEY` are set for Production
-**and** Preview.
+4. If Output Directory still shows `dist` in the UI, ignore it — `vercel.json` wins on deploy.
+5. Redeploy and check build logs for: `Generated .vercel/output/nitro.json` with `"preset": "vercel"`.
 
 ---
 

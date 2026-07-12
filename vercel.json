@@ -1,8 +1,9 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "tanstack-start",
   "buildCommand": "pnpm build",
   "installCommand": "pnpm install",
-  "framework": null,
+  "outputDirectory": ".vercel/output",
   "build": {
     "env": {
       "NITRO_PRESET": "vercel"
