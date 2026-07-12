@@ -210,11 +210,11 @@ To confirm the link: `supabase projects list` or check for `supabase/.temp/proje
 
 1. Push the repo to GitHub.
 2. Import the repository at [vercel.com/new](https://vercel.com/new).
-3. Vercel should detect **TanStack Start** (Nitro). If not, set:
-   - **Build command:** `pnpm build`
-   - **Install command:** `pnpm install`
-   - **Node.js version:** 22
-4. Add **Environment variables** (Production + Preview):
+3. Framework preset: **TanStack Start** (not standalone Nitro).
+4. **Leave “Output Directory” empty** — Nitro writes to `.vercel/output` during build.
+   Do **not** set `dist`, `.output`, or `public` as the output directory.
+5. Node.js version: **22**.
+6. Add **Environment variables** (Production + Preview):
 
 | Variable | Required | Notes |
 |---|---|---|
@@ -253,6 +253,21 @@ must be allowlisted.
 - **Upload size:** large files may fail on Vercel server functions; test with files under 4 MB.
 - **Auth rate limits:** in-memory per instance (`src/lib/server/rate-limit.ts`), not global.
 - **CSP:** `connect-src` includes your Supabase origin from `VITE_SUPABASE_URL` at build time.
+
+### Troubleshooting: `508 INFINITE_LOOP_DETECTED`
+
+Usually caused by a **wrong Output Directory** in Vercel project settings conflicting with
+Nitro's `.vercel/output` build. Fix:
+
+1. Vercel → Project → **Settings → General → Build & Development**
+2. Clear **Output Directory** (leave blank)
+3. Framework preset: **TanStack Start**
+4. Build command: `pnpm build`
+5. Redeploy
+
+The repo's `vercel.json` sets `NITRO_PRESET=vercel` so Nitro emits `.vercel/output` during
+Vercel builds. Ensure `VITE_SUPABASE_URL` and `VITE_SUPABASE_KEY` are set for Production
+**and** Preview.
 
 ---
 
