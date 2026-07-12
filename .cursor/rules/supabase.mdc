@@ -16,9 +16,9 @@ alwaysApply: false
 
 ## Security
 
-- Every table has **RLS enabled and forced**; ownership is scoped through `lines.user_id`.
+- Every table has **RLS enabled and forced**; ownership is scoped through `lines.owner_id`.
 - Documents live in a **private** Storage bucket; access is via short-lived **signed URLs** only.
-- Storage object paths are `{user_id}/{event_id}/{file}` and RLS checks the leading owner segment.
+- Storage object paths are `{owner_id}/{line_id}/{event_id}/{filename}` and RLS checks the leading owner segment.
 - Keep the migration files (`supabase/migrations/*.sql`) as the source of truth; regenerate types
   with `pnpm db:types` after schema changes.
 

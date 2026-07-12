@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/app/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { LineForm } from "@/features/lines/components/line-form";
 import { useCreateLine } from "@/features/lines/lines.queries";
+import { mutationErrorMessage } from "@/lib/mutation-error";
 
 export const Route = createFileRoute("/_authenticated/lines/new")({
   component: NewLinePage,
@@ -35,7 +36,8 @@ function NewLinePage() {
                   toast.success("Timeline created.");
                   navigate({ to: "/lines/$lineId", params: { lineId: line.id } });
                 },
-                onError: () => toast.error("Could not create timeline."),
+                onError: (error) =>
+                  toast.error(mutationErrorMessage(error, "Could not create timeline.")),
               })
             }
           />

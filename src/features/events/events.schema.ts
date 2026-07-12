@@ -32,7 +32,7 @@ export const updateEventSchema = z.object({
   id: z.uuid(),
   title: titleSchema.optional(),
   date: isoDateSchema.optional(),
-  description: descriptionSchema.transform(toNullableDescription),
+  description: descriptionSchema.optional().transform(toNullableDescription),
   type: typeSchema.optional(),
 });
 

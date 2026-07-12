@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
+import type { ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { DatePicker } from "@/components/app/date-picker";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,8 @@ export interface EventFormProps {
   onSubmit: (values: EventFormOutput) => void;
   isPending?: boolean;
   submitLabel?: string;
+  /** Optional slot for document attachments (create/edit flows). */
+  documentsSlot?: ReactNode;
 }
 
 export function EventForm({
@@ -35,6 +38,7 @@ export function EventForm({
   onSubmit,
   isPending = false,
   submitLabel = "Save",
+  documentsSlot,
 }: EventFormProps) {
   const form = useForm<EventFormValues, unknown, EventFormOutput>({
     resolver: zodResolver(eventFormSchema),
@@ -117,6 +121,7 @@ export function EventForm({
             </FormItem>
           )}
         />
+        {documentsSlot}
         <div className="flex justify-end">
           <Button type="submit" disabled={isPending}>
             {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}

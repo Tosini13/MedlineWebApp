@@ -29,7 +29,7 @@ export const createLineSchema = z.object({
 export const updateLineSchema = z.object({
   id: z.uuid(),
   title: titleSchema.optional(),
-  description: descriptionSchema.transform(toNullableDescription),
+  description: descriptionSchema.optional().transform(toNullableDescription),
   color: colorSchema.optional(),
 });
 

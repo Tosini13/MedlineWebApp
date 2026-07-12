@@ -1,4 +1,5 @@
 import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { MedEventWithDocuments } from "@/lib/domain/types";
 import { createEvent, deleteEvent, fetchEvent, fetchEventsByLine, updateEvent } from "./events.api";
 import type { CreateEventValues, UpdateEventValues } from "./events.schema";
 
@@ -16,7 +17,7 @@ export const eventsByLineQueryOptions = (lineId: string) =>
 export const eventQueryOptions = (id: string) =>
   queryOptions({
     queryKey: eventsKeys.detail(id),
-    queryFn: () => fetchEvent({ data: { id } }),
+    queryFn: () => fetchEvent({ data: { id } }) as Promise<MedEventWithDocuments | null>,
   });
 
 export function useCreateEvent(lineId: string) {

@@ -1,12 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import { EmptyState } from "@/components/app/empty-state";
 import { PageHeader } from "@/components/app/page-header";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LineForm } from "@/features/lines/components/line-form";
 import { lineQueryOptions, useUpdateLine } from "@/features/lines/lines.queries";
+import { mutationErrorMessage } from "@/lib/mutation-error";
 
 export const Route = createFileRoute("/_authenticated/lines/$lineId/edit")({
   component: EditLinePage,
@@ -15,8 +18,23 @@ export const Route = createFileRoute("/_authenticated/lines/$lineId/edit")({
 function EditLinePage() {
   const { lineId } = Route.useParams();
   const navigate = useNavigate();
-  const { data: line, isLoading } = useQuery(lineQueryOptions(lineId));
+  const { data: line, isLoading, isError } = useQuery(lineQueryOptions(lineId));
   const update = useUpdateLine();
+
+  if (!isLoading && (isError || !line)) {
+    return (
+      <EmptyState
+        icon={Pencil}
+        title="Timeline not found"
+        description="It may have been deleted or you may not have access."
+        action={
+          <Button asChild variant="outline">
+            <Link to="/">Back to timelines</Link>
+          </Button>
+        }
+      />
+    );
+  }
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -54,7 +72,8 @@ function EditLinePage() {
                       toast.success("Timeline updated.");
                       navigate({ to: "/lines/$lineId", params: { lineId } });
                     },
-                    onError: () => toast.error("Could not update timeline."),
+                    onError: (error) =>
+                      toast.error(mutationErrorMessage(error, "Could not update timeline.")),
                   },
                 )
               }

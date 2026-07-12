@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { mutationErrorMessage } from "@/lib/mutation-error";
 import {
   downloadDocument,
   eventDocumentsQueryOptions,
@@ -29,7 +30,7 @@ export function DocumentsSection({ eventId }: DocumentsSectionProps) {
     if (!fileList || fileList.length === 0) return;
     for (const file of Array.from(fileList)) {
       upload.mutate(file, {
-        onError: (error) => toast.error(error instanceof Error ? error.message : "Upload failed."),
+        onError: (error) => toast.error(mutationErrorMessage(error, "Upload failed.")),
       });
     }
     if (inputRef.current) inputRef.current.value = "";
@@ -84,7 +85,8 @@ export function DocumentsSection({ eventId }: DocumentsSectionProps) {
               onDelete={(id) =>
                 remove.mutate(id, {
                   onSuccess: () => toast.success("Document deleted."),
-                  onError: () => toast.error("Could not delete document."),
+                  onError: (error) =>
+                    toast.error(mutationErrorMessage(error, "Could not delete document.")),
                 })
               }
               isDeleting={remove.isPending && remove.variables === document.id}

@@ -84,9 +84,9 @@ supabase/migrations/    SQL schema + storage policies (source of truth)
 
 ## 5. Data Model
 
-- `lines(id, user_id, title, description, color, created_at, updated_at)`
-- `events(id, line_id, title, description, type event_type, occurred_at, created_at, updated_at)`
-- `documents(id, event_id, name, storage_path, mime_type, size_bytes, created_at)`
+- `lines(id, owner_id, title, description, color, created_at, updated_at)`
+- `events(id, line_id, title, description, type event_type, event_date, created_at, updated_at)`
+- `documents(id, event_id, name, storage_path, mime_type, size, created_at)`
 - `audit_log(...)` — append-only change tracking via `security definer` triggers.
 
 All tables have **RLS enabled and forced**, owner-scoped through `lines.user_id`. Storage objects
