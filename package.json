@@ -18,7 +18,8 @@
     "db:types": "supabase gen types typescript --local > src/lib/supabase/database.types.ts",
     "db:reset": "supabase db reset",
     "db:push": "supabase db push",
-    "seed": "tsx scripts/seed.ts"
+    "seed": "tsx scripts/seed.ts",
+    "migrate:firebase": "tsx scripts/migrate-from-firebase.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
@@ -31,6 +32,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^4.4.0",
+    "firebase-admin": "^14.1.0",
     "lucide-react": "^1.23.0",
     "next-themes": "^0.4.6",
     "radix-ui": "^1.6.2",

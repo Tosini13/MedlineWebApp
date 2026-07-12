@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "@tanstack/react-router";
-import { LogOut } from "lucide-react";
+import { Link, useRouter } from "@tanstack/react-router";
+import { LogOut, UserCog } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -51,6 +51,12 @@ export function UserMenu({ email }: UserMenuProps) {
           {email}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/account">
+            <UserCog className="mr-2 size-4" />
+            Account
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={() => signOut.mutate()} disabled={signOut.isPending}>
           <LogOut className="mr-2 size-4" />
           Sign out

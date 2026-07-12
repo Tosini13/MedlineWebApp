@@ -14,7 +14,7 @@ export interface CreateDocumentInput {
 
 export interface UploadFileInput {
   path: string;
-  body: ArrayBuffer | Blob;
+  body: ArrayBuffer | Blob | Uint8Array;
   contentType: string;
 }
 

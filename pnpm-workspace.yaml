@@ -3,3 +3,5 @@ allowBuilds:
   esbuild: true
   '@biomejs/biome': true
   '@tailwindcss/oxide': true
+  '@firebase/util': true
+  protobufjs: true
