@@ -22,10 +22,17 @@ function buildContentSecurityPolicy(options: {
     connectSrc.push("ws:", "wss:");
   }
 
-  const scriptSrc = ["'self'", "'unsafe-inline'"];
+  const scriptSrc = [
+    "'self'",
+    "'unsafe-inline'",
+    "https://www.google.com",
+    "https://www.gstatic.com",
+  ];
   if (isDev) {
     scriptSrc.push("'unsafe-eval'");
   }
+
+  const frameSrc = ["'self'", "https://www.google.com", "https://www.recaptcha.net"];
 
   const directives: Array<[string, Array<string>]> = [
     ["default-src", ["'self'"]],
@@ -35,6 +42,7 @@ function buildContentSecurityPolicy(options: {
     ["form-action", ["'self'"]],
     ["script-src", scriptSrc],
     ["style-src", ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"]],
+    ["frame-src", frameSrc],
     ["font-src", ["'self'", "https://fonts.gstatic.com", "data:"]],
     ["img-src", ["'self'", "data:", "blob:"]],
     ["connect-src", connectSrc],

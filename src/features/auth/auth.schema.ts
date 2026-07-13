@@ -14,9 +14,10 @@ export const signInSchema = z.object({
   password: z.string().min(1, "Password is required."),
 });
 
-export const signUpSchema = z.object({
+export const signUpFormSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
+  recaptchaToken: z.string().min(1, "Please complete the reCAPTCHA."),
 });
 
 export const resetRequestSchema = z.object({
@@ -28,6 +29,6 @@ export const updatePasswordSchema = z.object({
 });
 
 export type SignInValues = z.infer<typeof signInSchema>;
-export type SignUpValues = z.infer<typeof signUpSchema>;
+export type SignUpFormValues = z.infer<typeof signUpFormSchema>;
 export type ResetRequestValues = z.infer<typeof resetRequestSchema>;
 export type UpdatePasswordValues = z.infer<typeof updatePasswordSchema>;

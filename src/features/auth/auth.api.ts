@@ -1,14 +1,20 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestUrl } from "@tanstack/react-start/server";
 import { z } from "zod";
+import { notifyAdminNewSignup } from "@/lib/server/admin-notify";
 import { getServerContext, requireUser } from "@/lib/server/context";
 import { enforceRateLimit } from "@/lib/server/rate-limit";
+import { verifyRecaptchaToken } from "@/lib/server/recaptcha";
+import { getSupabaseAdminClient } from "@/lib/server/supabase-admin";
+import { PENDING_APPROVAL_MESSAGE } from "@/lib/supabase/repositories/auth.repository";
 import {
   resetRequestSchema,
   signInSchema,
   signUpSchema,
   updatePasswordSchema,
 } from "./auth.schema";
+
+export { PENDING_APPROVAL_MESSAGE };
 
 export interface AppUser {
   id: string;
@@ -37,11 +43,35 @@ export const signUpFn = createServerFn({ method: "POST" })
   .validator((d: unknown) => signUpSchema.parse(d))
   .handler(async ({ data }) => {
     enforceRateLimit({ key: "signup", limit: 5, windowMs: 60_000 });
+
+    const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
+    if (!recaptchaSecret) {
+      throw new Error("Sign up is temporarily unavailable. Please try again later.");
+    }
+
+    const recaptchaValid = await verifyRecaptchaToken(data.recaptchaToken, recaptchaSecret);
+    if (!recaptchaValid) {
+      throw new Error("reCAPTCHA verification failed. Please try again.");
+    }
+
     const { repos } = getServerContext();
     const origin = new URL(String(getRequestUrl())).origin;
     const redirectTo = new URL("/login", origin).toString();
     const result = await repos.auth.signUp(data.email, data.password, redirectTo);
     if (!result.ok) throw new Error(result.message ?? "Sign up failed.");
+
+    if (result.userId) {
+      const admin = getSupabaseAdminClient();
+      const { error } = await admin.auth.admin.updateUserById(result.userId, {
+        app_metadata: { approved: false },
+      });
+      if (error) {
+        throw new Error("Could not complete sign up. Please try again.");
+      }
+    }
+
+    await notifyAdminNewSignup({ email: data.email });
+
     return { ok: true as const };
   });
 
@@ -59,7 +89,6 @@ export const requestPasswordResetFn = createServerFn({ method: "POST" })
     const origin = new URL(String(getRequestUrl())).origin;
     const redirectTo = new URL("/update-password", origin).toString();
     await repos.auth.resetPasswordForEmail(data.email, redirectTo);
-    // Always ok, to avoid revealing whether the email exists.
     return { ok: true as const };
   });
 

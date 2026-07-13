@@ -24,6 +24,7 @@
     "db:reset": "supabase db reset",
     "db:push": "supabase db push",
     "seed": "tsx scripts/seed.ts",
+    "approve-user": "tsx scripts/approve-user.ts",
     "migrate:firebase": "tsx scripts/migrate-from-firebase.ts",
     "prepare": "husky"
   },
