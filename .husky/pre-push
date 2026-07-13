@@ -1,0 +1,14 @@
+#!/bin/bash
+
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+if [ "$current_branch" = "main" ]; then
+    commit_message=$(git log -1 --pretty=%B)
+    
+    # Check if 'HOTFIX' is in the commit message
+    if [[ ! "$commit_message" =~ [Hh][Oo][Tt][Ff][Ii][Xx] ]]; then
+        echo "❌ [Husky]: Direct pushes to main branch are disabled"
+        echo "   Please use a Pull Request, or include 'HOTFIX' in your commit message."
+        exit 1
+    fi
+fi

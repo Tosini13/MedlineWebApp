@@ -24,7 +24,8 @@
     "db:reset": "supabase db reset",
     "db:push": "supabase db push",
     "seed": "tsx scripts/seed.ts",
-    "migrate:firebase": "tsx scripts/migrate-from-firebase.ts"
+    "migrate:firebase": "tsx scripts/migrate-from-firebase.ts",
+    "prepare": "husky"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
@@ -54,8 +55,8 @@
     "@storybook/addon-a11y": "^10.4.6",
     "@storybook/addon-docs": "^10.4.6",
     "@storybook/react-vite": "^10.4.6",
-    "@tanstack/router-cli": "^1.167.18",
     "@tailwindcss/vite": "^4.3.2",
+    "@tanstack/router-cli": "^1.167.18",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
@@ -63,6 +64,7 @@
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
+    "husky": "^9.1.7",
     "jsdom": "^29.1.1",
     "nitro": "3.0.260610-beta",
     "storybook": "^10.4.6",
