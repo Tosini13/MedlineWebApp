@@ -19,7 +19,10 @@ export const Route = createRootRouteWithContext<RootContext>()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      {
+        name: "viewport",
+        content: "width=device-width, initial-scale=1, viewport-fit=cover",
+      },
       { name: "color-scheme", content: "light dark" },
       { title: "Medline — your medical timeline" },
       {
@@ -27,9 +30,18 @@ export const Route = createRootRouteWithContext<RootContext>()({
         content:
           "Medline keeps your medical history organised as clear, secure timelines of appointments, tests, and documents.",
       },
+      { name: "application-name", content: "Medline" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-title", content: "Medline" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "icon", href: "/icons/favicon.ico" },
+      { rel: "icon", href: "/icons/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { rel: "icon", href: "/icons/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/icons/apple-touch-icon.png" },
       {
         rel: "preconnect",
         href: "https://fonts.googleapis.com",
@@ -65,12 +77,14 @@ function RootComponent() {
 
 function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="min-h-dvh" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <meta name="theme-color" content="#FAFBFC" media="(prefers-color-scheme: light)" />
+        <meta name="theme-color" content="#272A32" media="(prefers-color-scheme: dark)" />
       </head>
-      <body>
-        {children}
+      <body className="flex min-h-dvh flex-col">
+        <div className="flex min-h-0 flex-1 flex-col">{children}</div>
         <Scripts />
       </body>
     </html>
