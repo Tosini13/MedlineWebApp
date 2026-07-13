@@ -3,12 +3,15 @@ import { getRequestUrl } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { getServerContext, requireUser } from "@/lib/server/context";
 import { enforceRateLimit } from "@/lib/server/rate-limit";
+import { EMAIL_NOT_VERIFIED_MESSAGE } from "@/lib/supabase/repositories/auth.repository";
 import {
   resetRequestSchema,
   signInSchema,
   signUpSchema,
   updatePasswordSchema,
 } from "./auth.schema";
+
+export { EMAIL_NOT_VERIFIED_MESSAGE };
 
 export interface AppUser {
   id: string;

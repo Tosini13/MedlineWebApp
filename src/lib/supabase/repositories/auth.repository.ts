@@ -6,8 +6,14 @@ export interface AuthResult {
   ok: boolean;
   /** Generic, non-enumerating message safe to show to users. */
   message?: string;
-  /** True when Supabase confirms the email address is not verified yet. */
-  emailNotConfirmed?: boolean;
+}
+
+/** Shown only when Supabase confirms the account email is not verified. */
+export const EMAIL_NOT_VERIFIED_MESSAGE =
+  "Please verify your email before signing in. Check your inbox for the confirmation link.";
+
+function isEmailNotConfirmedError(error: { code?: string }): boolean {
+  return error.code === "email_not_confirmed";
 }
 
 export class AuthRepository extends BaseRepository {
