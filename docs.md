@@ -262,16 +262,21 @@ must be allowlisted.
 
 ### Troubleshooting: `508 INFINITE_LOOP_DETECTED`
 
-Usually caused by a **wrong `outputDirectory`** conflicting with Nitro's Build Output API.
-Do **not** set `outputDirectory` to `.vercel/output` or `dist` in `vercel.json`.
+Usually caused by an **outdated Nitro** build on Vercel. Older `nitro-nightly@4.0.0-*`
+packages route dynamic requests through `__fallback` and can trigger
+`INFINITE_LOOP_DETECTED` even when static assets (`/assets/*`) return 200.
 
 Fix:
 
-1. Commit the repo's minimal `vercel.json` (`{ "framework": "tanstack-start" }` only).
-2. Vercel → Project → **Settings → General → Build & Development**
-3. Framework preset: **TanStack Start**
-4. Node.js: **24**
-5. Redeploy and check build logs for: `Generated .vercel/output/nitro.json` with `"preset": "vercel"`.
+1. Ensure `package.json` uses **`nitro@3.0.260610-beta`** or newer (includes the Vercel
+   `req.runtime` fix).
+2. Commit the repo's minimal `vercel.json` (`{ "framework": "tanstack-start" }` only).
+3. Vercel → Project → **Settings → General → Build & Development**
+4. Framework preset: **TanStack Start**
+5. Node.js: **24**
+6. Redeploy and check build logs for:
+   - `Generated .vercel/output/nitro.json` with `"preset": "vercel"`
+   - Route destination `/__server` (not `/__fallback` on current Nitro)
 
 ---
 

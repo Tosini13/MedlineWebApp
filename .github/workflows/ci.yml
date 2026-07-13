@@ -20,8 +20,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Version comes from package.json#packageManager — do not also pass `version` here.
-      - uses: pnpm/action-setup@v4
+      # v6 runs on Node 24; v4 uses deprecated Node 20 and breaks the self-installer.
+      - uses: pnpm/action-setup@v6
 
       - uses: actions/setup-node@v4
         with:
@@ -54,7 +54,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
 
       - uses: actions/setup-node@v4
         with:
