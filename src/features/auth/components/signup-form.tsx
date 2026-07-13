@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { Loader2 } from "lucide-react";
+import { Loader2, RefreshCw } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,48 @@ import {
 import { Input } from "@/components/ui/input";
 import { signUpFn } from "../auth.api";
 import { type SignUpValues, signUpSchema } from "../auth.schema";
+
+const PASSWORD_CHARSETS = {
+  upper: "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  lower: "abcdefghijklmnopqrstuvwxyz",
+  digits: "0123456789",
+  symbols: "!@#$%^&*-_=+",
+} as const;
+
+function pickRandomChar(charset: string): string {
+  const values = new Uint32Array(1);
+  crypto.getRandomValues(values);
+  return charset[values[0]! % charset.length]!;
+}
+
+function generateSecurePassword(length = 16): string {
+  const all =
+    PASSWORD_CHARSETS.upper +
+    PASSWORD_CHARSETS.lower +
+    PASSWORD_CHARSETS.digits +
+    PASSWORD_CHARSETS.symbols;
+  const len = Math.min(Math.max(length, 8), 128);
+
+  const chars = [
+    pickRandomChar(PASSWORD_CHARSETS.upper),
+    pickRandomChar(PASSWORD_CHARSETS.lower),
+    pickRandomChar(PASSWORD_CHARSETS.digits),
+    pickRandomChar(PASSWORD_CHARSETS.symbols),
+  ];
+
+  while (chars.length < len) {
+    chars.push(pickRandomChar(all));
+  }
+
+  for (let i = chars.length - 1; i > 0; i--) {
+    const values = new Uint32Array(1);
+    crypto.getRandomValues(values);
+    const j = values[0]! % (i + 1);
+    [chars[i], chars[j]] = [chars[j]!, chars[i]!];
+  }
+
+  return chars.join("");
+}
 
 export function SignUpForm() {
   const navigate = useNavigate();
@@ -61,7 +103,22 @@ export function SignUpForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <div className="flex items-center justify-between gap-2">
+                <FormLabel>Password</FormLabel>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const generated = generateSecurePassword();
+                    form.setValue("password", generated, { shouldValidate: true });
+                    toast.success("Password generated");
+                  }}
+                >
+                  <RefreshCw className="size-3.5" />
+                  Generate password
+                </Button>
+              </div>
               <FormControl>
                 <Input type="password" autoComplete="new-password" {...field} />
               </FormControl>
