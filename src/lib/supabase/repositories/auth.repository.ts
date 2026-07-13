@@ -6,6 +6,8 @@ export interface AuthResult {
   ok: boolean;
   /** Generic, non-enumerating message safe to show to users. */
   message?: string;
+  /** True when Supabase confirms the email address is not verified yet. */
+  emailNotConfirmed?: boolean;
 }
 
 export class AuthRepository extends BaseRepository {
