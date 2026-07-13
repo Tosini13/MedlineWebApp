@@ -13,7 +13,7 @@ export function LineCard({ line }: LineCardProps) {
     <Link
       to="/lines/$lineId"
       params={{ lineId: line.id }}
-      className="group block focus-visible:outline-none"
+      className="group block cursor-pointer focus-visible:outline-none"
     >
       <Card className="relative h-full overflow-hidden transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md group-focus-visible:ring-2 group-focus-visible:ring-ring">
         <span

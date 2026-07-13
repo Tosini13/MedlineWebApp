@@ -58,7 +58,7 @@ function SearchPage() {
                     key={line.id}
                     to="/lines/$lineId"
                     params={{ lineId: line.id }}
-                    className="flex items-center gap-3 rounded-lg border bg-card p-3 transition-colors hover:bg-accent/50"
+                    className="flex cursor-pointer items-center gap-3 rounded-lg border bg-card p-3 transition-colors hover:bg-accent/50"
                   >
                     <span
                       aria-hidden
@@ -81,7 +81,7 @@ function SearchPage() {
                     key={event.id}
                     to="/lines/$lineId/events/$eventId"
                     params={{ lineId: event.lineId, eventId: event.id }}
-                    className="flex items-center justify-between gap-3 rounded-lg border bg-card p-3 transition-colors hover:bg-accent/50"
+                    className="flex cursor-pointer items-center justify-between gap-3 rounded-lg border bg-card p-3 transition-colors hover:bg-accent/50"
                   >
                     <span className="flex items-center gap-3">
                       <EventTypeBadge code={event.type} />

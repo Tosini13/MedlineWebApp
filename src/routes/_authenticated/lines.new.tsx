@@ -19,7 +19,7 @@ function NewLinePage() {
     <div className="mx-auto max-w-2xl space-y-6">
       <Link
         to="/"
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        className="inline-flex cursor-pointer items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="size-4" />
         Timelines

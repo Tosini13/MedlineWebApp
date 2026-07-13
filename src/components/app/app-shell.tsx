@@ -28,7 +28,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
           activeOptions={{ exact: item.exact }}
           onClick={onNavigate}
           className={cn(
-            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
+            "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
           )}
           activeProps={{ className: "bg-accent text-accent-foreground" }}
         >
@@ -46,7 +46,7 @@ export function AppShell({ email, children }: AppShellProps) {
   return (
     <div className="min-h-screen bg-background lg:grid lg:grid-cols-[16rem_1fr]">
       <aside className="sticky top-0 hidden h-screen flex-col border-r bg-sidebar px-4 py-5 lg:flex">
-        <Link to="/" className="px-2">
+        <Link to="/" className="cursor-pointer px-2">
           <Brand />
         </Link>
         <div className="mt-8 flex-1">
