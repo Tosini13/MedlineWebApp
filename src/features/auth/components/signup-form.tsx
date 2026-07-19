@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { signUpFn } from "../auth.api";
-import { type SignUpFormValues, signUpFormSchema } from "../auth.schema";
+import { type SignUpFormValues, type SignUpValues, signUpFormSchema } from "../auth.schema";
 import { generateSecurePassword } from "../generate-password";
 import { resetTurnstile, TURNSTILE_WIDGET_HEIGHT_PX, TurnstileWidget } from "./turnstile-widget";
 
@@ -34,7 +34,7 @@ export function SignUpForm() {
   });
 
   const mutation = useMutation({
-    mutationFn: (values: SignUpFormValues) => signUpFn({ data: values }),
+    mutationFn: (values: SignUpValues) => signUpFn({ data: values }),
     onSuccess: async () => {
       toast.success("Account created. Pending admin approval.");
       await navigate({ to: "/login" });
