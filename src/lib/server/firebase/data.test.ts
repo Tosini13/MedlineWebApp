@@ -31,7 +31,7 @@ describe("getFirebaseSummary", () => {
 
   it("returns configured summary with no data when the email is unknown", async () => {
     isFirebaseConfigured.mockReturnValue(true);
-    getFirebaseServices.mockReturnValue({
+    getFirebaseServices.mockResolvedValue({
       auth: {
         getUserByEmail: vi.fn().mockRejectedValue(new Error("not found")),
       },
@@ -48,7 +48,7 @@ describe("getFirebaseSummary", () => {
 
   it("returns counts when legacy data exists", async () => {
     isFirebaseConfigured.mockReturnValue(true);
-    getFirebaseServices.mockReturnValue({
+    getFirebaseServices.mockResolvedValue({
       auth: {
         getUserByEmail: vi.fn().mockResolvedValue({ uid: "uid-1" }),
       },
@@ -91,7 +91,7 @@ describe("getFirebaseSummary", () => {
 
   it("returns a readable error instead of throwing when Firebase lookup fails", async () => {
     isFirebaseConfigured.mockReturnValue(true);
-    getFirebaseServices.mockReturnValue({
+    getFirebaseServices.mockResolvedValue({
       auth: {
         getUserByEmail: vi.fn().mockResolvedValue({ uid: "uid-1" }),
       },

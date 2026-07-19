@@ -10,6 +10,7 @@ paths = [
   '''(^|/)README\.md$''',
   '''(^|/)docs\.md$''',
   '''(^|/)supabase/config\.toml$''',
+  '''(^|/)src/lib/server/firebase/admin\.test\.ts$''',
 ]
 regexes = [
   # Local Supabase demo keys are non-sensitive, well-known values.
