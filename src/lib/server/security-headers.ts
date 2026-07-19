@@ -22,10 +22,16 @@ function buildContentSecurityPolicy(options: {
     connectSrc.push("ws:", "wss:");
   }
 
-  const scriptSrc = ["'self'", "'unsafe-inline'"];
+  const turnstileOrigin = "https://challenges.cloudflare.com";
+
+  const scriptSrc = ["'self'", "'unsafe-inline'", turnstileOrigin];
   if (isDev) {
     scriptSrc.push("'unsafe-eval'");
   }
+
+  connectSrc.push(turnstileOrigin);
+
+  const frameSrc = ["'self'", turnstileOrigin];
 
   const directives: Array<[string, Array<string>]> = [
     ["default-src", ["'self'"]],
@@ -35,6 +41,7 @@ function buildContentSecurityPolicy(options: {
     ["form-action", ["'self'"]],
     ["script-src", scriptSrc],
     ["style-src", ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"]],
+    ["frame-src", frameSrc],
     ["font-src", ["'self'", "https://fonts.gstatic.com", "data:"]],
     ["img-src", ["'self'", "data:", "blob:"]],
     ["connect-src", connectSrc],

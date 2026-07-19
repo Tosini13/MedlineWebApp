@@ -1,9 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Loader2 } from "lucide-react";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -14,7 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { signInFn } from "../auth.api";
+import { PENDING_APPROVAL_MESSAGE, signInFn } from "../auth.api";
 import { type SignInValues, signInSchema } from "../auth.schema";
 
 export function LoginForm() {
@@ -30,14 +31,23 @@ export function LoginForm() {
       await navigate({ to: "/" });
     },
     onError: (error) => {
-      toast.error(error instanceof Error ? error.message : "Sign in failed.");
+      const message = error instanceof Error ? error.message : "Sign in failed.";
+      if (message === PENDING_APPROVAL_MESSAGE) {
+        form.setError("root", { message });
+        return;
+      }
+      form.clearErrors("root");
+      toast.error(message);
     },
   });
 
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
+        onSubmit={form.handleSubmit((values) => {
+          form.clearErrors("root");
+          mutation.mutate(values);
+        })}
         className="space-y-4"
         noValidate
       >
@@ -75,6 +85,13 @@ export function LoginForm() {
             </FormItem>
           )}
         />
+        {form.formState.errors.root?.message ? (
+          <Alert variant="destructive">
+            <AlertCircle />
+            <AlertTitle>Account pending approval</AlertTitle>
+            <AlertDescription>{form.formState.errors.root.message}</AlertDescription>
+          </Alert>
+        ) : null}
         <Button type="submit" className="w-full" disabled={mutation.isPending}>
           {mutation.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
           Sign in

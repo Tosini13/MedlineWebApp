@@ -39,6 +39,7 @@ async function ensureUser(): Promise<string> {
     email,
     password,
     email_confirm: true,
+    app_metadata: { approved: true },
   });
 
   if (created.data.user) {

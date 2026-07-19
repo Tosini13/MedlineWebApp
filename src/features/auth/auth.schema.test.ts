@@ -57,7 +57,13 @@ describe("signInSchema", () => {
 
 describe("signUpSchema", () => {
   it("applies password rules on sign up", () => {
-    expect(() => signUpSchema.parse({ email: "user@example.com", password: "1234567" })).toThrow();
+    expect(() =>
+      signUpSchema.parse({
+        email: "user@example.com",
+        password: "1234567",
+        turnstileToken: "token",
+      }),
+    ).toThrow();
   });
 });
 
