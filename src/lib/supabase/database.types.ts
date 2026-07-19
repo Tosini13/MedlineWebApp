@@ -129,6 +129,42 @@ export interface Database {
           },
         ];
       };
+      profiles: {
+        Row: {
+          user_id: string;
+          date_of_birth: string | null;
+          blood_type: string | null;
+          emergency_contact: string | null;
+          medicaments: string | null;
+          chronic_health_issues: string | null;
+          lock_screen_summary: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          user_id: string;
+          date_of_birth?: string | null;
+          blood_type?: string | null;
+          emergency_contact?: string | null;
+          medicaments?: string | null;
+          chronic_health_issues?: string | null;
+          lock_screen_summary?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          date_of_birth?: string | null;
+          blood_type?: string | null;
+          emergency_contact?: string | null;
+          medicaments?: string | null;
+          chronic_health_issues?: string | null;
+          lock_screen_summary?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       audit_log: {
         Row: {
           id: number;

@@ -80,6 +80,23 @@ supabase/migrations/    SQL schema + storage policies (source of truth)
 .cursor/rules/          agent guidance
 ```
 
+### File-based routing (TanStack Router)
+
+Dot notation in route filenames creates **parent/child** routes (e.g. `account.edit.tsx` is a
+child of `account.tsx` at `/account/edit`).
+
+When a segment has sub-routes:
+
+1. **`segment.tsx`** — layout only, renders `<Outlet />`.
+2. **`segment.index.tsx`** — default page content at `/segment`.
+3. **`segment.edit.tsx`** (etc.) — child pages rendered inside the layout outlet.
+
+Without `<Outlet />` on the parent, child navigation matches but the child UI never renders — the
+parent page stays visible. See `lines.$lineId.*` and `account.*` for the canonical pattern.
+Regenerate the route tree after changes: `pnpm generate-routes`.
+
+Agent guidance: `.cursor/rules/routing.mdc`.
+
 ---
 
 ## 5. Data Model

@@ -1,0 +1,50 @@
+---
+description: TanStack Router file-based routing — nested routes and Outlet pattern
+globs: src/routes/**/*.tsx
+alwaysApply: false
+---
+
+# File-based routing (TanStack Router)
+
+## Dot notation = parent + child
+
+In `src/routes/`, a dot in the filename nests the route under the segment before the dot:
+
+- `account.tsx` → `/account` (parent)
+- `account.edit.tsx` → `/account/edit` (child of `account`)
+- `lines.$lineId.edit.tsx` → `/lines/$lineId/edit` (child of `lines.$lineId`)
+
+Regenerate types after adding routes: `pnpm generate-routes`.
+
+## Parent routes must render `<Outlet />`
+
+If a route has child routes, the parent component **must** render `<Outlet />`. Without it,
+navigation to the child URL succeeds but the child page never appears — the parent UI stays
+visible (e.g. clicking "Edit profile" on `/account` and remaining on the account page).
+
+## Page content belongs in `*.index.tsx`
+
+When a segment has sub-routes, split it into three files:
+
+| File | Role |
+|---|---|
+| `foo.tsx` | Layout only — `return <Outlet />` |
+| `foo.index.tsx` | Default page at `/foo` |
+| `foo.edit.tsx` | Child page at `/foo/edit` |
+
+Canonical examples in this repo:
+
+- `lines.$lineId.tsx` + `lines.$lineId.index.tsx` + `lines.$lineId.edit.tsx`
+- `account.tsx` + `account.index.tsx` + `account.edit.tsx`
+
+Do **not** put full page UI in a parent route file that also has dot-suffixed siblings.
+
+## Leaf routes (no children)
+
+Routes with no dot-suffixed siblings can be a single file with full page content
+(e.g. `search.tsx`, `lines.new.tsx`).
+
+## Links
+
+Use the public path in `<Link to="...">` (e.g. `to="/account/edit"`), not the file id
+(`/_authenticated/account/edit`).

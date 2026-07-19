@@ -40,3 +40,16 @@ export interface DocumentMeta {
 export interface MedEventWithDocuments extends MedEvent {
   documents: DocumentMeta[];
 }
+
+/** Optional health information stored at the account level. */
+export interface Profile {
+  userId: string;
+  dateOfBirth: string | null;
+  bloodType: string | null;
+  emergencyContact: string | null;
+  medicaments: string | null;
+  chronicHealthIssues: string | null;
+  lockScreenSummary: string | null;
+  createdAt: string;
+  updatedAt: string;
+}

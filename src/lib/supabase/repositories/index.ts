@@ -3,12 +3,14 @@ import { AuthRepository } from "./auth.repository";
 import { DocumentsRepository } from "./documents.repository";
 import { EventsRepository } from "./events.repository";
 import { LinesRepository } from "./lines.repository";
+import { ProfilesRepository } from "./profiles.repository";
 
 export interface Repositories {
   auth: AuthRepository;
   lines: LinesRepository;
   events: EventsRepository;
   documents: DocumentsRepository;
+  profiles: ProfilesRepository;
 }
 
 /** Composes the repository layer over a given Supabase client. */
@@ -18,6 +20,7 @@ export function createRepositories(client: TypedSupabaseClient): Repositories {
     lines: new LinesRepository(client),
     events: new EventsRepository(client),
     documents: new DocumentsRepository(client),
+    profiles: new ProfilesRepository(client),
   };
 }
 
@@ -29,3 +32,5 @@ export type { CreateEventInput, UpdateEventInput } from "./events.repository";
 export { EventsRepository } from "./events.repository";
 export type { CreateLineInput, UpdateLineInput } from "./lines.repository";
 export { LinesRepository } from "./lines.repository";
+export type { UpsertProfileInput } from "./profiles.repository";
+export { ProfilesRepository } from "./profiles.repository";
