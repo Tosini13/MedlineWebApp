@@ -1,0 +1,8 @@
+# CodeRabbit runs reviews only when requested on a pull request.
+# Comment on the PR:
+#   @coderabbitai review       — incremental review of new changes
+#   @coderabbitai full review  — full review from scratch
+reviews:
+  auto_review:
+    enabled: false
+    auto_incremental_review: false
