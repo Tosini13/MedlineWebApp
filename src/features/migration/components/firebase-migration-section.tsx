@@ -1,31 +1,57 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { ArrowRightLeft, CheckCircle2, Database, Loader2, Trash2 } from "lucide-react";
+import { ArrowRightLeft, CheckCircle2, Database, Loader2, Search } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { mutationErrorMessage } from "@/lib/mutation-error";
 import type { MigrationResult } from "@/lib/server/firebase/migrate";
-import {
-  firebaseSummaryQueryOptions,
-  useDeleteFirebaseData,
-  useMigrateFromFirebase,
-} from "../migration.queries";
+import { firebaseSummaryQueryOptions, useMigrateFromFirebase } from "../migration.queries";
 
 function countLabel(count: number, singular: string): string {
   return `${count} ${count === 1 ? singular : `${singular}s`}`;
 }
 
 export function FirebaseMigrationSection() {
-  const summaryQuery = useQuery(firebaseSummaryQueryOptions());
+  const [checkRequested, setCheckRequested] = useState(false);
+  const summaryQuery = useQuery({
+    ...firebaseSummaryQueryOptions(),
+    enabled: checkRequested,
+  });
   const migrate = useMigrateFromFirebase();
-  const remove = useDeleteFirebaseData();
   const [migrated, setMigrated] = useState<MigrationResult | null>(null);
 
   const summary = summaryQuery.data;
+  const loadFailed = summaryQuery.isError;
+  const summaryError =
+    summary?.error ??
+    (loadFailed
+      ? "Could not check for data from the old app. Please refresh and try again."
+      : undefined);
+
+  if (!checkRequested) {
+    return (
+      <Card className="border-amber-500/30">
+        <CardHeader className="space-y-1">
+          <h2 className="flex items-center gap-2 text-lg font-semibold">
+            <Database className="size-4 text-amber-600 dark:text-amber-500" />
+            Legacy app compatibility
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Check whether data from the previous version of the app can be migrated to this account.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <Button onClick={() => setCheckRequested(true)}>
+            <Search className="size-4" />
+            Check compatibility with legacy apps
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (summaryQuery.isLoading) {
     return (
@@ -38,13 +64,43 @@ export function FirebaseMigrationSection() {
     );
   }
 
-  // Hide the whole section unless Firebase is configured AND the user still has
-  // legacy data. This also hides it permanently once the data has been deleted.
-  if (!summary?.configured || !summary.hasData) {
-    return null;
+  if (!loadFailed && !summary?.configured) {
+    return (
+      <Card className="border-amber-500/30">
+        <CardHeader className="space-y-1">
+          <h2 className="flex items-center gap-2 text-lg font-semibold">
+            <Database className="size-4 text-amber-600 dark:text-amber-500" />
+            Legacy app compatibility
+          </h2>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Legacy migration is not available on this server.
+          </p>
+        </CardContent>
+      </Card>
+    );
   }
 
-  const isBusy = migrate.isPending || remove.isPending;
+  if (!loadFailed && summary?.configured && !summary.hasData && !summary.error) {
+    return (
+      <Card className="border-amber-500/30">
+        <CardHeader className="space-y-1">
+          <h2 className="flex items-center gap-2 text-lg font-semibold">
+            <Database className="size-4 text-amber-600 dark:text-amber-500" />
+            Legacy app compatibility
+          </h2>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            No data was found in the previous app for your email address.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const isBusy = migrate.isPending;
 
   function handleMigrate() {
     migrate.mutate(undefined, {
@@ -56,17 +112,6 @@ export function FirebaseMigrationSection() {
     });
   }
 
-  function handleDelete() {
-    remove.mutate(undefined, {
-      onSuccess: (result) => {
-        setMigrated(null);
-        toast.success(`Deleted ${countLabel(result.deletedLines, "timeline")} from the old app.`);
-      },
-      onError: (error) =>
-        toast.error(mutationErrorMessage(error, "Could not delete your old data.")),
-    });
-  }
-
   return (
     <Card className="border-amber-500/30">
       <CardHeader className="space-y-1">
@@ -75,31 +120,41 @@ export function FirebaseMigrationSection() {
           Data from the old app
         </h2>
         <p className="text-sm text-muted-foreground">
-          We found data in the previous (Firebase) version of the app linked to your email. Migrate
-          it here to continue where you left off.
+          {summaryError
+            ? "We could not reach the previous (Firebase) version of the app to check for your data."
+            : "We found data in the previous (Firebase) version of the app linked to your email. Migrate it here to continue where you left off."}
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
-          <span>
-            <span className="font-semibold">{summary.lineCount}</span>{" "}
-            <span className="text-muted-foreground">
-              {summary.lineCount === 1 ? "timeline" : "timelines"}
+        {summaryError && (
+          <Alert variant="destructive">
+            <AlertTitle>Could not load legacy data</AlertTitle>
+            <AlertDescription>{summaryError}</AlertDescription>
+          </Alert>
+        )}
+
+        {!summaryError && summary && (
+          <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+            <span>
+              <span className="font-semibold">{summary.lineCount}</span>{" "}
+              <span className="text-muted-foreground">
+                {summary.lineCount === 1 ? "timeline" : "timelines"}
+              </span>
             </span>
-          </span>
-          <span>
-            <span className="font-semibold">{summary.eventCount}</span>{" "}
-            <span className="text-muted-foreground">
-              {summary.eventCount === 1 ? "event" : "events"}
+            <span>
+              <span className="font-semibold">{summary.eventCount}</span>{" "}
+              <span className="text-muted-foreground">
+                {summary.eventCount === 1 ? "event" : "events"}
+              </span>
             </span>
-          </span>
-          <span>
-            <span className="font-semibold">{summary.documentCount}</span>{" "}
-            <span className="text-muted-foreground">
-              {summary.documentCount === 1 ? "document" : "documents"}
+            <span>
+              <span className="font-semibold">{summary.documentCount}</span>{" "}
+              <span className="text-muted-foreground">
+                {summary.documentCount === 1 ? "document" : "documents"}
+              </span>
             </span>
-          </span>
-        </div>
+          </div>
+        )}
 
         {migrated && (
           <Alert>
@@ -129,34 +184,14 @@ export function FirebaseMigrationSection() {
           </p>
         )}
 
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Button onClick={handleMigrate} disabled={isBusy}>
-            {migrate.isPending ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <ArrowRightLeft className="size-4" />
-            )}
-            {migrated ? "Migrate again" : "Migrate to new application"}
-          </Button>
-
-          <ConfirmDialog
-            destructive
-            title="Delete data from the old app?"
-            description="This permanently deletes all of your timelines, events and documents from the previous (Firebase) app. This cannot be undone. Anything you already migrated here will not be affected."
-            confirmLabel="Delete old data"
-            onConfirm={handleDelete}
-            trigger={
-              <Button variant="outline" disabled={isBusy}>
-                {remove.isPending ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <Trash2 className="size-4" />
-                )}
-                Delete data from old app
-              </Button>
-            }
-          />
-        </div>
+        <Button onClick={handleMigrate} disabled={isBusy || Boolean(summaryError)}>
+          {migrate.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <ArrowRightLeft className="size-4" />
+          )}
+          {migrated ? "Migrate again" : "Migrate to new application"}
+        </Button>
       </CardContent>
     </Card>
   );

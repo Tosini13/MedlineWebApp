@@ -30,6 +30,8 @@ export interface FirebaseSummary {
   lineCount: number;
   eventCount: number;
   documentCount: number;
+  /** Present when Firebase is configured but a lookup failed. */
+  error?: string;
 }
 
 const EMPTY_SUMMARY: FirebaseSummary = {
@@ -66,69 +68,82 @@ function readDocuments(value: unknown): FirebaseDocument[] {
 /** Reads all of a user's legacy lines, events and embedded document metadata. */
 export async function exportFirebaseData(email: string): Promise<FirebaseLine[]> {
   if (!isFirebaseConfigured()) return [];
-  const uid = await resolveUidByEmail(email);
-  if (!uid) return [];
 
-  const { db } = getFirebaseServices();
-  const linesSnap = await db.collection("lines").where("ownerId", "==", uid).get();
+  try {
+    const uid = await resolveUidByEmail(email);
+    if (!uid) return [];
 
-  const lines: FirebaseLine[] = [];
-  for (const lineDoc of linesSnap.docs) {
-    const lineData = lineDoc.data();
-    const eventsSnap = await lineDoc.ref.collection("events").get();
+    const { db } = getFirebaseServices();
+    const linesSnap = await db.collection("lines").where("ownerId", "==", uid).get();
 
-    const events: FirebaseEvent[] = eventsSnap.docs.map((eventDoc) => {
-      const eventData = eventDoc.data();
-      return {
-        id: eventDoc.id,
-        title: typeof eventData.title === "string" ? eventData.title : "Untitled event",
-        date: eventData.date,
-        description: typeof eventData.description === "string" ? eventData.description : "",
-        type: eventData.type,
-        documents: readDocuments(eventData.documents),
-      };
-    });
+    const lines: FirebaseLine[] = [];
+    for (const lineDoc of linesSnap.docs) {
+      const lineData = lineDoc.data();
+      const eventsSnap = await lineDoc.ref.collection("events").get();
 
-    lines.push({
-      id: lineDoc.id,
-      title: typeof lineData.title === "string" ? lineData.title : "Untitled timeline",
-      description: typeof lineData.description === "string" ? lineData.description : undefined,
-      color: lineData.color,
-      events,
-    });
+      const events: FirebaseEvent[] = eventsSnap.docs.map((eventDoc) => {
+        const eventData = eventDoc.data();
+        return {
+          id: eventDoc.id,
+          title: typeof eventData.title === "string" ? eventData.title : "Untitled event",
+          date: eventData.date,
+          description: typeof eventData.description === "string" ? eventData.description : "",
+          type: eventData.type,
+          documents: readDocuments(eventData.documents),
+        };
+      });
+
+      lines.push({
+        id: lineDoc.id,
+        title: typeof lineData.title === "string" ? lineData.title : "Untitled timeline",
+        description: typeof lineData.description === "string" ? lineData.description : undefined,
+        color: lineData.color,
+        events,
+      });
+    }
+
+    return lines;
+  } catch {
+    throw new Error("Could not read data from the old app. Please try again later.");
   }
-
-  return lines;
 }
 
 /** Lightweight count of a user's legacy data, used to decide whether to show the migration UI. */
 export async function getFirebaseSummary(email: string): Promise<FirebaseSummary> {
   if (!isFirebaseConfigured()) return EMPTY_SUMMARY;
 
-  const uid = await resolveUidByEmail(email);
-  if (!uid) return { ...EMPTY_SUMMARY, configured: true };
+  try {
+    const uid = await resolveUidByEmail(email);
+    if (!uid) return { ...EMPTY_SUMMARY, configured: true };
 
-  const { db } = getFirebaseServices();
-  const linesSnap = await db.collection("lines").where("ownerId", "==", uid).get();
+    const { db } = getFirebaseServices();
+    const linesSnap = await db.collection("lines").where("ownerId", "==", uid).get();
 
-  let eventCount = 0;
-  let documentCount = 0;
-  for (const lineDoc of linesSnap.docs) {
-    const eventsSnap = await lineDoc.ref.collection("events").get();
-    eventCount += eventsSnap.size;
-    for (const eventDoc of eventsSnap.docs) {
-      documentCount += readDocuments(eventDoc.data().documents).length;
+    let eventCount = 0;
+    let documentCount = 0;
+    for (const lineDoc of linesSnap.docs) {
+      const eventsSnap = await lineDoc.ref.collection("events").get();
+      eventCount += eventsSnap.size;
+      for (const eventDoc of eventsSnap.docs) {
+        documentCount += readDocuments(eventDoc.data().documents).length;
+      }
     }
-  }
 
-  const lineCount = linesSnap.size;
-  return {
-    configured: true,
-    hasData: lineCount > 0,
-    lineCount,
-    eventCount,
-    documentCount,
-  };
+    const lineCount = linesSnap.size;
+    return {
+      configured: true,
+      hasData: lineCount > 0,
+      lineCount,
+      eventCount,
+      documentCount,
+    };
+  } catch {
+    return {
+      ...EMPTY_SUMMARY,
+      configured: true,
+      error: "Could not read data from the old app. Please try again later.",
+    };
+  }
 }
 
 export interface DownloadedFile {
@@ -155,44 +170,4 @@ export async function downloadFirebaseFile(path: string): Promise<DownloadedFile
   } catch {
     return null;
   }
-}
-
-export interface DeleteFirebaseResult {
-  deletedLines: number;
-  deletedEvents: number;
-  deletedFiles: number;
-}
-
-/** Permanently deletes all of a user's legacy Firestore data and Storage files. */
-export async function deleteFirebaseData(email: string): Promise<DeleteFirebaseResult> {
-  const result: DeleteFirebaseResult = { deletedLines: 0, deletedEvents: 0, deletedFiles: 0 };
-  if (!isFirebaseConfigured()) return result;
-
-  const uid = await resolveUidByEmail(email);
-  if (!uid) return result;
-
-  const { db, bucket } = getFirebaseServices();
-  const linesSnap = await db.collection("lines").where("ownerId", "==", uid).get();
-
-  for (const lineDoc of linesSnap.docs) {
-    // Remove all Storage objects under this line first.
-    try {
-      const [files] = await bucket.getFiles({ prefix: `lines/${lineDoc.id}/` });
-      await Promise.all(files.map((file) => file.delete({ ignoreNotFound: true })));
-      result.deletedFiles += files.length;
-    } catch {
-      // Continue deleting Firestore data even if some files fail to delete.
-    }
-
-    const eventsSnap = await lineDoc.ref.collection("events").get();
-    for (const eventDoc of eventsSnap.docs) {
-      await eventDoc.ref.delete();
-      result.deletedEvents += 1;
-    }
-
-    await lineDoc.ref.delete();
-    result.deletedLines += 1;
-  }
-
-  return result;
 }

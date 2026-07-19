@@ -1,6 +1,6 @@
 import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
 import { linesKeys } from "@/features/lines/lines.queries";
-import { fetchFirebaseSummary, migrateFromFirebase, removeFirebaseData } from "./migration.api";
+import { fetchFirebaseSummary, migrateFromFirebase } from "./migration.api";
 
 export const migrationKeys = {
   summary: ["migration", "firebase-summary"] as const,
@@ -21,13 +21,5 @@ export function useMigrateFromFirebase() {
       queryClient.invalidateQueries({ queryKey: linesKeys.all });
       queryClient.invalidateQueries({ queryKey: migrationKeys.summary });
     },
-  });
-}
-
-export function useDeleteFirebaseData() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: () => removeFirebaseData(),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: migrationKeys.summary }),
   });
 }
