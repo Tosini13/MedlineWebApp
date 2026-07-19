@@ -26,3 +26,8 @@ shadcn/ui on Tailwind v4, TypeScript (strict), Biome, Vitest, Storybook.
 - Feature code lives in `src/features/<feature>/` (`*.schema.ts`, `*.api.ts`, `*.queries.ts`, `components/`).
 - Shared UI in `src/components/ui` (shadcn) and `src/components/app` (composed app widgets).
 - Import via the `@/` alias, never long relative chains.
+
+## Test-driven development
+
+New features follow **TDD**: add failing tests before implementation, then make them pass. See
+`.cursor/rules/testing-and-storybook.mdc` and `docs/pr-testing-guide.md`.
