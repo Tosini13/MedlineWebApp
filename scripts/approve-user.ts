@@ -4,7 +4,7 @@ import type { Database } from "@/lib/supabase/database.types";
 try {
   process.loadEnvFile(".env");
 } catch {
-  // No .env file.
+  console.error("No .env file found");
 }
 
 const url = process.env.VITE_SUPABASE_URL;
