@@ -26,6 +26,12 @@ export function FirebaseMigrationSection() {
   const [migrated, setMigrated] = useState<MigrationResult | null>(null);
 
   const summary = summaryQuery.data;
+  const loadFailed = summaryQuery.isError;
+  const summaryError =
+    summary?.error ??
+    (loadFailed
+      ? "Could not check for data from the old app. Please refresh and try again."
+      : undefined);
 
   if (summaryQuery.isLoading) {
     return (
@@ -38,9 +44,11 @@ export function FirebaseMigrationSection() {
     );
   }
 
-  // Hide the whole section unless Firebase is configured AND the user still has
-  // legacy data. This also hides it permanently once the data has been deleted.
-  if (!summary?.configured || !summary.hasData) {
+  if (!loadFailed && !summary?.configured) {
+    return null;
+  }
+
+  if (!loadFailed && summary?.configured && !summary.hasData && !summary.error) {
     return null;
   }
 
@@ -75,31 +83,41 @@ export function FirebaseMigrationSection() {
           Data from the old app
         </h2>
         <p className="text-sm text-muted-foreground">
-          We found data in the previous (Firebase) version of the app linked to your email. Migrate
-          it here to continue where you left off.
+          {summaryError
+            ? "We could not reach the previous (Firebase) version of the app to check for your data."
+            : "We found data in the previous (Firebase) version of the app linked to your email. Migrate it here to continue where you left off."}
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
-          <span>
-            <span className="font-semibold">{summary.lineCount}</span>{" "}
-            <span className="text-muted-foreground">
-              {summary.lineCount === 1 ? "timeline" : "timelines"}
+        {summaryError && (
+          <Alert variant="destructive">
+            <AlertTitle>Could not load legacy data</AlertTitle>
+            <AlertDescription>{summaryError}</AlertDescription>
+          </Alert>
+        )}
+
+        {!summaryError && summary && (
+          <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+            <span>
+              <span className="font-semibold">{summary.lineCount}</span>{" "}
+              <span className="text-muted-foreground">
+                {summary.lineCount === 1 ? "timeline" : "timelines"}
+              </span>
             </span>
-          </span>
-          <span>
-            <span className="font-semibold">{summary.eventCount}</span>{" "}
-            <span className="text-muted-foreground">
-              {summary.eventCount === 1 ? "event" : "events"}
+            <span>
+              <span className="font-semibold">{summary.eventCount}</span>{" "}
+              <span className="text-muted-foreground">
+                {summary.eventCount === 1 ? "event" : "events"}
+              </span>
             </span>
-          </span>
-          <span>
-            <span className="font-semibold">{summary.documentCount}</span>{" "}
-            <span className="text-muted-foreground">
-              {summary.documentCount === 1 ? "document" : "documents"}
+            <span>
+              <span className="font-semibold">{summary.documentCount}</span>{" "}
+              <span className="text-muted-foreground">
+                {summary.documentCount === 1 ? "document" : "documents"}
+              </span>
             </span>
-          </span>
-        </div>
+          </div>
+        )}
 
         {migrated && (
           <Alert>
@@ -130,7 +148,7 @@ export function FirebaseMigrationSection() {
         )}
 
         <div className="flex flex-col gap-2 sm:flex-row">
-          <Button onClick={handleMigrate} disabled={isBusy}>
+          <Button onClick={handleMigrate} disabled={isBusy || Boolean(summaryError)}>
             {migrate.isPending ? (
               <Loader2 className="size-4 animate-spin" />
             ) : (
@@ -146,7 +164,7 @@ export function FirebaseMigrationSection() {
             confirmLabel="Delete old data"
             onConfirm={handleDelete}
             trigger={
-              <Button variant="outline" disabled={isBusy}>
+              <Button variant="outline" disabled={isBusy || Boolean(summaryError)}>
                 {remove.isPending ? (
                   <Loader2 className="size-4 animate-spin" />
                 ) : (

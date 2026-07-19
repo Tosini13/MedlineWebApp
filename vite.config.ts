@@ -17,7 +17,12 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     tanstackStart(),
-    nitro({ preset: nitroPreset }),
+    nitro({
+      preset: nitroPreset,
+      // firebase-admin breaks when bundled (SDK_VERSION runtime error on Vercel).
+      // Trace it into node_modules instead so the server loads the real package.
+      traceDeps: ["firebase-admin*"],
+    }),
     // React's Vite plugin must come after Start's plugin.
     viteReact(),
   ],
