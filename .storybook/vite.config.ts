@@ -1,5 +1,6 @@
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
+import svgr from "vite-plugin-svgr";
 
 /**
  * Dedicated Vite config for Storybook. It deliberately omits the TanStack Start
@@ -8,6 +9,6 @@ import { defineConfig } from "vite";
  * React plugin automatically.
  */
 export default defineConfig({
-  plugins: [tailwindcss()],
+  plugins: [svgr(), tailwindcss()],
   resolve: { tsconfigPaths: true },
 });
