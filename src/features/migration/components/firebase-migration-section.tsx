@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { ArrowRightLeft, CheckCircle2, Database, Loader2, Trash2 } from "lucide-react";
+import { ArrowRightLeft, CheckCircle2, Database, Loader2, Search, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/app/confirm-dialog";
@@ -20,7 +20,11 @@ function countLabel(count: number, singular: string): string {
 }
 
 export function FirebaseMigrationSection() {
-  const summaryQuery = useQuery(firebaseSummaryQueryOptions());
+  const [checkRequested, setCheckRequested] = useState(false);
+  const summaryQuery = useQuery({
+    ...firebaseSummaryQueryOptions(),
+    enabled: checkRequested,
+  });
   const migrate = useMigrateFromFirebase();
   const remove = useDeleteFirebaseData();
   const [migrated, setMigrated] = useState<MigrationResult | null>(null);
@@ -32,6 +36,28 @@ export function FirebaseMigrationSection() {
     (loadFailed
       ? "Could not check for data from the old app. Please refresh and try again."
       : undefined);
+
+  if (!checkRequested) {
+    return (
+      <Card className="border-amber-500/30">
+        <CardHeader className="space-y-1">
+          <h2 className="flex items-center gap-2 text-lg font-semibold">
+            <Database className="size-4 text-amber-600 dark:text-amber-500" />
+            Legacy app compatibility
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Check whether data from the previous version of the app can be migrated to this account.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <Button onClick={() => setCheckRequested(true)}>
+            <Search className="size-4" />
+            Check compatibility with legacy apps
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (summaryQuery.isLoading) {
     return (
@@ -45,11 +71,39 @@ export function FirebaseMigrationSection() {
   }
 
   if (!loadFailed && !summary?.configured) {
-    return null;
+    return (
+      <Card className="border-amber-500/30">
+        <CardHeader className="space-y-1">
+          <h2 className="flex items-center gap-2 text-lg font-semibold">
+            <Database className="size-4 text-amber-600 dark:text-amber-500" />
+            Legacy app compatibility
+          </h2>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            Legacy migration is not available on this server.
+          </p>
+        </CardContent>
+      </Card>
+    );
   }
 
   if (!loadFailed && summary?.configured && !summary.hasData && !summary.error) {
-    return null;
+    return (
+      <Card className="border-amber-500/30">
+        <CardHeader className="space-y-1">
+          <h2 className="flex items-center gap-2 text-lg font-semibold">
+            <Database className="size-4 text-amber-600 dark:text-amber-500" />
+            Legacy app compatibility
+          </h2>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            No data was found in the previous app for your email address.
+          </p>
+        </CardContent>
+      </Card>
+    );
   }
 
   const isBusy = migrate.isPending || remove.isPending;
