@@ -44,8 +44,8 @@ export function AppShell({ email, children }: AppShellProps) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background lg:grid lg:grid-cols-[16rem_1fr]">
-      <aside className="sticky top-0 hidden h-screen flex-col border-r bg-sidebar px-4 py-5 lg:flex">
+    <div className="min-h-dvh bg-background lg:grid lg:grid-cols-[16rem_1fr]">
+      <aside className="sticky top-0 hidden h-dvh flex-col border-r bg-sidebar px-4 py-5 lg:flex">
         <Link to="/" className="cursor-pointer px-2">
           <Brand />
         </Link>
@@ -57,37 +57,39 @@ export function AppShell({ email, children }: AppShellProps) {
         </p>
       </aside>
 
-      <div className="flex min-h-screen flex-col">
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-2 border-b bg-background/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="flex items-center gap-2">
-            <Sheet open={open} onOpenChange={setOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open menu">
-                  <Menu className="size-5" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-72 p-0">
-                <div className="flex h-full flex-col px-4 py-5">
-                  <SheetTitle asChild>
-                    <Brand />
-                  </SheetTitle>
-                  <div className="mt-8 flex-1">
-                    <NavLinks onNavigate={() => setOpen(false)} />
+      <div className="flex min-h-dvh flex-col">
+        <header className="sticky top-0 z-30 border-b bg-background/80 pt-[env(safe-area-inset-top)] backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="flex h-14 items-center justify-between gap-2 px-4">
+            <div className="flex items-center gap-2">
+              <Sheet open={open} onOpenChange={setOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Open menu">
+                    <Menu className="size-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-72 p-0">
+                  <div className="flex h-full flex-col px-4 py-5">
+                    <SheetTitle asChild>
+                      <Brand />
+                    </SheetTitle>
+                    <div className="mt-8 flex-1">
+                      <NavLinks onNavigate={() => setOpen(false)} />
+                    </div>
                   </div>
-                </div>
-              </SheetContent>
-            </Sheet>
-            <div className="lg:hidden">
-              <Brand showWordmark={false} />
+                </SheetContent>
+              </Sheet>
+              <div className="lg:hidden">
+                <Brand showWordmark={false} />
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-1">
-            <ThemeToggle />
-            <UserMenu email={email} />
+            <div className="flex items-center gap-1">
+              <ThemeToggle />
+              <UserMenu email={email} />
+            </div>
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
+        <main className="app-shell-main mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
           {children}
         </main>
       </div>

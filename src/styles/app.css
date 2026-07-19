@@ -3,6 +3,16 @@
 
 @custom-variant dark (&:is(.dark *));
 
+.app-shell-main {
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+}
+
+@media (display-mode: standalone) {
+  .app-shell-main {
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+  }
+}
+
 /*
  * MedlineWebApp design system.
  * Semantic tokens (shadcn-compatible) + per-event-type accents.
