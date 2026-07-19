@@ -1,10 +1,36 @@
 ---
-description: Testing (Vitest) and Storybook conventions
+description: TDD, Vitest, and Storybook conventions for agents
 globs: src/**/*.test.ts,src/**/*.test.tsx,src/**/*.stories.tsx,.storybook/**
-alwaysApply: false
+alwaysApply: true
 ---
 
 # Testing & Storybook
+
+## Test-driven development (required)
+
+When adding or extending a feature, **write failing tests before implementation** (red → green →
+refactor). Do not land feature code without matching tests.
+
+1. **Identify testable units first** — zod schemas, pure helpers, mappers, formatters, small
+   branch functions (see `docs/pr-testing-guide.md` for targets by feature area).
+2. **Add `*.test.ts` next to the module** — e.g. `foo.schema.test.ts` before `foo.schema.ts`
+   changes, or extend an existing test file with new `describe`/`it` blocks.
+3. **Run `pnpm test`** — confirm new tests **fail** for the right reason (missing behavior, not
+   typos or setup errors).
+4. **Implement the feature** — minimal code to make tests pass; then refactor if needed.
+5. **Re-run `pnpm test && pnpm typecheck && pnpm lint`** before finishing.
+
+**Order of work for a typical feature:**
+
+| Layer | Test first | Then implement |
+|---|---|---|
+| Schema / validation | `*.schema.test.ts` | `*.schema.ts` |
+| Pure helpers | `helper.test.ts` | `helper.ts` |
+| Server function | mock repository; assert auth + validation + happy/error paths | `*.api.ts` |
+| UI (when logic warrants it) | component behavior with Testing Library | `components/*.tsx` |
+
+**Skip TDD for:** purely visual tweaks (spacing, copy), one-line config, or migrations with no
+testable app logic — still run the full test suite before finishing.
 
 ## Vitest
 

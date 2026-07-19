@@ -1,4 +1,5 @@
 import type { User } from "@supabase/supabase-js";
+import { EMAIL_NOT_VERIFIED_MESSAGE, isEmailNotConfirmedError } from "@/features/auth/auth-errors";
 import { BaseRepository } from "./base.repository";
 
 export interface AuthResult {
@@ -21,6 +22,9 @@ export class AuthRepository extends BaseRepository {
   async signIn(email: string, password: string): Promise<AuthResult> {
     const { error } = await this.client.auth.signInWithPassword({ email, password });
     if (error) {
+      if (isEmailNotConfirmedError(error)) {
+        return { ok: false, message: EMAIL_NOT_VERIFIED_MESSAGE };
+      }
       return { ok: false, message: "Invalid email or password." };
     }
     return { ok: true };
