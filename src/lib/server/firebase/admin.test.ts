@@ -4,7 +4,7 @@ import { isFirebaseConfigured, parseServiceAccountJson } from "./admin";
 const VALID_ACCOUNT = {
   project_id: "legacy-app",
   client_email: "firebase@legacy-app.iam.gserviceaccount.com",
-  private_key: "-----BEGIN PRIVATE KEY-----\\nabc\\n-----END PRIVATE KEY-----\\n",
+  private_key: "line1\\nline2",
 };
 
 describe("parseServiceAccountJson", () => {
@@ -12,7 +12,7 @@ describe("parseServiceAccountJson", () => {
     expect(parseServiceAccountJson(JSON.stringify(VALID_ACCOUNT))).toEqual({
       project_id: "legacy-app",
       client_email: "firebase@legacy-app.iam.gserviceaccount.com",
-      private_key: "-----BEGIN PRIVATE KEY-----\nabc\n-----END PRIVATE KEY-----\n",
+      private_key: "line1\nline2",
     });
   });
 
@@ -21,7 +21,7 @@ describe("parseServiceAccountJson", () => {
     expect(parseServiceAccountJson(wrapped)).toEqual({
       project_id: "legacy-app",
       client_email: "firebase@legacy-app.iam.gserviceaccount.com",
-      private_key: "-----BEGIN PRIVATE KEY-----\nabc\n-----END PRIVATE KEY-----\n",
+      private_key: "line1\nline2",
     });
   });
 
