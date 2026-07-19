@@ -3,6 +3,7 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import viteReact from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
+import svgr from "vite-plugin-svgr";
 
 /** On Vercel, Nitro must emit the Build Output API (`.vercel/output`), not `node-server`. */
 const nitroPreset = process.env.VERCEL ? "vercel" : "node-server";
@@ -15,6 +16,7 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   plugins: [
+    svgr(),
     tailwindcss(),
     tanstackStart(),
     nitro({
