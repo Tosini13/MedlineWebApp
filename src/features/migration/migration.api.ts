@@ -25,11 +25,3 @@ export const migrateFromFirebase = createServerFn({ method: "POST" }).handler(as
   }
   return migrateFirebaseToSupabase({ email: user.email, userId: user.id, repos });
 });
-
-export const removeFirebaseData = createServerFn({ method: "POST" }).handler(async () => {
-  const { user } = await requireUser();
-  if (!user.email) {
-    throw new Error("Your account has no email address to match legacy data.");
-  }
-  return getFirebaseDataProvider().deleteData(user.email);
-});

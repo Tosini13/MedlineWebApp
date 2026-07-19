@@ -1,19 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { ArrowRightLeft, CheckCircle2, Database, Loader2, Search, Trash2 } from "lucide-react";
+import { ArrowRightLeft, CheckCircle2, Database, Loader2, Search } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { mutationErrorMessage } from "@/lib/mutation-error";
 import type { MigrationResult } from "@/lib/server/firebase/migrate";
-import {
-  firebaseSummaryQueryOptions,
-  useDeleteFirebaseData,
-  useMigrateFromFirebase,
-} from "../migration.queries";
+import { firebaseSummaryQueryOptions, useMigrateFromFirebase } from "../migration.queries";
 
 function countLabel(count: number, singular: string): string {
   return `${count} ${count === 1 ? singular : `${singular}s`}`;
@@ -26,7 +21,6 @@ export function FirebaseMigrationSection() {
     enabled: checkRequested,
   });
   const migrate = useMigrateFromFirebase();
-  const remove = useDeleteFirebaseData();
   const [migrated, setMigrated] = useState<MigrationResult | null>(null);
 
   const summary = summaryQuery.data;
@@ -106,7 +100,7 @@ export function FirebaseMigrationSection() {
     );
   }
 
-  const isBusy = migrate.isPending || remove.isPending;
+  const isBusy = migrate.isPending;
 
   function handleMigrate() {
     migrate.mutate(undefined, {
@@ -115,17 +109,6 @@ export function FirebaseMigrationSection() {
         toast.success("Migration complete.");
       },
       onError: (error) => toast.error(mutationErrorMessage(error, "Migration failed.")),
-    });
-  }
-
-  function handleDelete() {
-    remove.mutate(undefined, {
-      onSuccess: (result) => {
-        setMigrated(null);
-        toast.success(`Deleted ${countLabel(result.deletedLines, "timeline")} from the old app.`);
-      },
-      onError: (error) =>
-        toast.error(mutationErrorMessage(error, "Could not delete your old data.")),
     });
   }
 
@@ -201,34 +184,14 @@ export function FirebaseMigrationSection() {
           </p>
         )}
 
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Button onClick={handleMigrate} disabled={isBusy || Boolean(summaryError)}>
-            {migrate.isPending ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <ArrowRightLeft className="size-4" />
-            )}
-            {migrated ? "Migrate again" : "Migrate to new application"}
-          </Button>
-
-          <ConfirmDialog
-            destructive
-            title="Delete data from the old app?"
-            description="This permanently deletes all of your timelines, events and documents from the previous (Firebase) app. This cannot be undone. Anything you already migrated here will not be affected."
-            confirmLabel="Delete old data"
-            onConfirm={handleDelete}
-            trigger={
-              <Button variant="outline" disabled={isBusy || Boolean(summaryError)}>
-                {remove.isPending ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <Trash2 className="size-4" />
-                )}
-                Delete data from old app
-              </Button>
-            }
-          />
-        </div>
+        <Button onClick={handleMigrate} disabled={isBusy || Boolean(summaryError)}>
+          {migrate.isPending ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <ArrowRightLeft className="size-4" />
+          )}
+          {migrated ? "Migrate again" : "Migrate to new application"}
+        </Button>
       </CardContent>
     </Card>
   );

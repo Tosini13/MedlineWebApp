@@ -1,11 +1,11 @@
 import { isFirebaseConfigured } from "./admin";
-import type { DeleteFirebaseResult, FirebaseLine, FirebaseSummary } from "./data";
-import { deleteFirebaseData, exportFirebaseData, getFirebaseSummary } from "./data";
+import type { FirebaseLine, FirebaseSummary } from "./data";
+import { exportFirebaseData, getFirebaseSummary } from "./data";
 
 /**
- * Server-only provider for read-only checks and destructive operations against the
- * legacy Firebase project. Mirrors the Supabase repository pattern: a single entry
- * point for all Firebase Admin access from server functions.
+ * Server-only provider for read-only checks against the legacy Firebase project.
+ * Mirrors the Supabase repository pattern: a single entry point for all Firebase
+ * Admin access from server functions.
  */
 export class FirebaseDataProvider {
   /** Whether a service account is configured on the server. */
@@ -21,11 +21,6 @@ export class FirebaseDataProvider {
   /** Exports the full legacy dataset for an email (used by the migration runner). */
   async exportData(email: string): Promise<FirebaseLine[]> {
     return exportFirebaseData(email);
-  }
-
-  /** Permanently deletes all legacy data for an email. */
-  async deleteData(email: string): Promise<DeleteFirebaseResult> {
-    return deleteFirebaseData(email);
   }
 }
 
