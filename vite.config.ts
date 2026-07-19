@@ -15,6 +15,10 @@ export default defineConfig({
   resolve: {
     tsconfigPaths: true,
   },
+  ssr: {
+    // Keep firebase-admin out of the SSR bundle; Nitro traces the real package instead.
+    external: ["firebase-admin"],
+  },
   plugins: [
     svgr(),
     tailwindcss(),
@@ -22,8 +26,8 @@ export default defineConfig({
     nitro({
       preset: nitroPreset,
       // firebase-admin breaks when bundled (SDK_VERSION runtime error on Vercel).
-      // Trace it into node_modules instead so the server loads the real package.
-      traceDeps: ["firebase-admin*"],
+      // Full-trace copies the package tree into the serverless function output.
+      traceDeps: ["firebase-admin*", "@google-cloud/*", "@grpc/*"],
     }),
     // React's Vite plugin must come after Start's plugin.
     viteReact(),

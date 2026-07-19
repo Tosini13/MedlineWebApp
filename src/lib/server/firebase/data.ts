@@ -44,7 +44,7 @@ const EMPTY_SUMMARY: FirebaseSummary = {
 
 /** Resolves a Firebase Auth UID from an email, or null when not found. */
 async function resolveUidByEmail(email: string): Promise<string | null> {
-  const { auth } = getFirebaseServices();
+  const { auth } = await getFirebaseServices();
   try {
     const user = await auth.getUserByEmail(email);
     return user.uid;
@@ -73,7 +73,7 @@ export async function exportFirebaseData(email: string): Promise<FirebaseLine[]>
     const uid = await resolveUidByEmail(email);
     if (!uid) return [];
 
-    const { db } = getFirebaseServices();
+    const { db } = await getFirebaseServices();
     const linesSnap = await db.collection("lines").where("ownerId", "==", uid).get();
 
     const lines: FirebaseLine[] = [];
@@ -116,7 +116,7 @@ export async function getFirebaseSummary(email: string): Promise<FirebaseSummary
     const uid = await resolveUidByEmail(email);
     if (!uid) return { ...EMPTY_SUMMARY, configured: true };
 
-    const { db } = getFirebaseServices();
+    const { db } = await getFirebaseServices();
     const linesSnap = await db.collection("lines").where("ownerId", "==", uid).get();
 
     let eventCount = 0;
@@ -153,7 +153,7 @@ export interface DownloadedFile {
 
 /** Downloads a single Storage object by its full path. Returns null if missing. */
 export async function downloadFirebaseFile(path: string): Promise<DownloadedFile | null> {
-  const { bucket } = getFirebaseServices();
+  const { bucket } = await getFirebaseServices();
   const file = bucket.file(path);
   try {
     const [exists] = await file.exists();
