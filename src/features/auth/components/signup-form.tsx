@@ -18,15 +18,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { signUpFn } from "../auth.api";
 import { type SignUpFormValues, signUpFormSchema } from "../auth.schema";
-import { getRecaptchaToken, RecaptchaCheckbox, resetRecaptcha } from "./recaptcha-checkbox";
 import { generateSecurePassword } from "../generate-password";
+import { resetTurnstile, TURNSTILE_WIDGET_HEIGHT_PX, TurnstileWidget } from "./turnstile-widget";
 
-const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY as string | undefined;
+const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
 
 export function SignUpForm() {
   const navigate = useNavigate();
-  const recaptchaWidgetIdRef = useRef<number | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const turnstileWidgetIdRef = useRef<string | null>(null);
+  const turnstileTokenRef = useRef<string | null>(null);
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpFormSchema),
     defaultValues: { email: "", password: "" },
@@ -39,7 +40,8 @@ export function SignUpForm() {
       await navigate({ to: "/login" });
     },
     onError: (error) => {
-      resetRecaptcha(recaptchaWidgetIdRef.current);
+      turnstileTokenRef.current = null;
+      resetTurnstile(turnstileWidgetIdRef.current);
       toast.error(error instanceof Error ? error.message : "Sign up failed.");
     },
   });
@@ -57,18 +59,18 @@ export function SignUpForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit((values) => {
-          if (!recaptchaSiteKey) {
+          if (!turnstileSiteKey) {
             toast.error("Sign up is temporarily unavailable.");
             return;
           }
 
-          const recaptchaToken = getRecaptchaToken(recaptchaWidgetIdRef.current);
-          if (!recaptchaToken) {
-            toast.error("Please complete the reCAPTCHA.");
+          const turnstileToken = turnstileTokenRef.current;
+          if (!turnstileToken) {
+            toast.error("Please wait for verification to complete.");
             return;
           }
 
-          mutation.mutate({ ...values, recaptchaToken });
+          mutation.mutate({ ...values, turnstileToken });
         })}
         className="space-y-4"
         noValidate
@@ -146,20 +148,30 @@ export function SignUpForm() {
             </FormItem>
           )}
         />
-        {recaptchaSiteKey ? (
-          <RecaptchaCheckbox
-            siteKey={recaptchaSiteKey}
+        {turnstileSiteKey ? (
+          <TurnstileWidget
+            siteKey={turnstileSiteKey}
+            onTokenChange={(token) => {
+              turnstileTokenRef.current = token;
+            }}
             onWidgetReady={(widgetId) => {
-              recaptchaWidgetIdRef.current = widgetId;
+              turnstileWidgetIdRef.current = widgetId;
             }}
           />
         ) : (
-          <p className="text-sm text-muted-foreground">
-            Sign up is temporarily unavailable. Please try again later.
-          </p>
+          <div className="flex items-center" style={{ height: TURNSTILE_WIDGET_HEIGHT_PX }}>
+            <p className="text-sm text-muted-foreground">
+              Sign up is temporarily unavailable. Please try again later.
+            </p>
+          </div>
         )}
-        <Button type="submit" className="w-full" disabled={mutation.isPending || !recaptchaSiteKey}>
-          {mutation.isPending && <Loader2 className="mr-2 size-4 animate-spin" />}
+        <Button type="submit" className="w-full" disabled={mutation.isPending || !turnstileSiteKey}>
+          <span
+            className="inline-flex size-4 shrink-0 items-center justify-center"
+            aria-hidden={!mutation.isPending}
+          >
+            {mutation.isPending ? <Loader2 className="size-4 animate-spin" /> : null}
+          </span>
           Create account
         </Button>
       </form>

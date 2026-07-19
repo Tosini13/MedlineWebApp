@@ -17,7 +17,7 @@ export const signInSchema = z.object({
 export const signUpFormSchema = z.object({
   email: emailSchema,
   password: passwordSchema,
-  recaptchaToken: z.string().min(1, "Please complete the reCAPTCHA."),
+  turnstileToken: z.string().min(1, "Verification is required."),
 });
 
 export const resetRequestSchema = z.object({

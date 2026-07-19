@@ -22,17 +22,16 @@ function buildContentSecurityPolicy(options: {
     connectSrc.push("ws:", "wss:");
   }
 
-  const scriptSrc = [
-    "'self'",
-    "'unsafe-inline'",
-    "https://www.google.com",
-    "https://www.gstatic.com",
-  ];
+  const turnstileOrigin = "https://challenges.cloudflare.com";
+
+  const scriptSrc = ["'self'", "'unsafe-inline'", turnstileOrigin];
   if (isDev) {
     scriptSrc.push("'unsafe-eval'");
   }
 
-  const frameSrc = ["'self'", "https://www.google.com", "https://www.recaptcha.net"];
+  connectSrc.push(turnstileOrigin);
+
+  const frameSrc = ["'self'", turnstileOrigin];
 
   const directives: Array<[string, Array<string>]> = [
     ["default-src", ["'self'"]],

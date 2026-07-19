@@ -4,8 +4,8 @@ import { z } from "zod";
 import { notifyAdminNewSignup } from "@/lib/server/admin-notify";
 import { getServerContext, requireUser } from "@/lib/server/context";
 import { enforceRateLimit } from "@/lib/server/rate-limit";
-import { verifyRecaptchaToken } from "@/lib/server/recaptcha";
 import { getSupabaseAdminClient } from "@/lib/server/supabase-admin";
+import { verifyTurnstileToken } from "@/lib/server/turnstile";
 import { PENDING_APPROVAL_MESSAGE } from "@/lib/supabase/repositories/auth.repository";
 import {
   resetRequestSchema,
@@ -44,14 +44,14 @@ export const signUpFn = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     enforceRateLimit({ key: "signup", limit: 5, windowMs: 60_000 });
 
-    const recaptchaSecret = process.env.RECAPTCHA_SECRET_KEY;
-    if (!recaptchaSecret) {
+    const turnstileSecret = process.env.TURNSTILE_SECRET_KEY;
+    if (!turnstileSecret) {
       throw new Error("Sign up is temporarily unavailable. Please try again later.");
     }
 
-    const recaptchaValid = await verifyRecaptchaToken(data.recaptchaToken, recaptchaSecret);
-    if (!recaptchaValid) {
-      throw new Error("reCAPTCHA verification failed. Please try again.");
+    const turnstileValid = await verifyTurnstileToken(data.turnstileToken, turnstileSecret);
+    if (!turnstileValid) {
+      throw new Error("Verification failed. Please try again.");
     }
 
     const { repos } = getServerContext();
