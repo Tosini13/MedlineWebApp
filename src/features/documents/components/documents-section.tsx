@@ -103,7 +103,7 @@ export function DocumentsSection({ eventId }: DocumentsSectionProps) {
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground"
+          className="flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground transition-colors hover:border-primary/50 hover:text-foreground"
         >
           <Upload className="size-6" />
           <span>Upload PDFs, images or documents (max 10 MB each)</span>

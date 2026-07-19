@@ -53,7 +53,7 @@ export function TimelineItem({
         <Link
           to="/lines/$lineId/events/$eventId"
           params={{ lineId, eventId: event.id }}
-          className="min-w-0 flex-1 focus-visible:outline-none"
+          className="min-w-0 flex-1 cursor-pointer focus-visible:outline-none"
         >
           <div className="rounded-lg border bg-card p-4 transition-all hover:shadow-sm group-focus-within:ring-2 group-focus-within:ring-ring">
             <div className="flex items-start justify-between gap-3">

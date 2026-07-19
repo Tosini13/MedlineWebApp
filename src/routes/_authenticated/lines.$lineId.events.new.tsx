@@ -30,7 +30,7 @@ function NewEventPage() {
       <Link
         to="/lines/$lineId"
         params={{ lineId }}
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        className="inline-flex cursor-pointer items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="size-4" />
         Back to timeline
