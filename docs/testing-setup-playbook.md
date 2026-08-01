@@ -228,12 +228,14 @@ npm run test:changed -- "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
 ### E2E tests
 
 - Image: `mcr.microsoft.com/playwright:vX.Y.Z-noble` (pin to `@playwright/test`)
+- Set `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` on install (image already has browsers)
 - `npm ci` then `npm run test:e2e`
 - Artifact `playwright-report/` on failure, expire in ~7 days
 - Trigger on MR when `src/**`, `e2e/**`, lockfile, or `playwright.config.ts` change
 
-For GitHub Actions, mirror the same jobs with `actions/cache` and the official
-Playwright container/action.
+For GitHub Actions, see [`.github/workflows/ci.yml`](../.github/workflows/ci.yml):
+`test:changed` on PRs, Playwright container + path filter + gate job, full
+`pnpm test` on `main` pushes.
 
 ---
 
@@ -243,8 +245,9 @@ Development-time only — **not** wired into CI. No golden screenshot baselines.
 
 ### MCP server
 
-Project root [`.mcp.json`](../.mcp.json) (Claude Code) and/or Cursor MCP
-(`.cursor/mcp.json` / Cursor Settings → MCP):
+Project root [`.mcp.json`](../.mcp.json) is the source of truth; keep
+`.cursor/mcp.json` in sync for Cursor. Pin `@playwright/mcp` (do not use
+`@latest`):
 
 ```json
 {
@@ -254,7 +257,7 @@ Project root [`.mcp.json`](../.mcp.json) (Claude Code) and/or Cursor MCP
       "command": "npx",
       "args": [
         "-y",
-        "@playwright/mcp@latest",
+        "@playwright/mcp@0.0.78",
         "--viewport-size=1440,900",
         "--output-dir=.cursor/skills/run/screenshots"
       ],

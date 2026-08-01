@@ -1,7 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 import { loadEnv } from "vite";
 
-process.env = { ...process.env, ...loadEnv("development", process.cwd()) };
+// Prefer already-set env (CI secrets) over local `.env*` files.
+process.env = { ...loadEnv("development", process.cwd()), ...process.env };
 
 const port = Number(process.env.PORT) || 3000;
 const baseURL = `http://localhost:${port}`;

@@ -6,11 +6,12 @@ Dev-time AI browser checks for MedlineWebApp. **Not** part of CI. No golden scre
 
 | Piece | Location |
 | --- | --- |
-| Playwright MCP | `.mcp.json` and `.cursor/mcp.json` |
+| Playwright MCP | `.mcp.json` (source of truth) + `.cursor/mcp.json` (Cursor copy — keep in sync) |
 | Agent skill | `.cursor/skills/run/SKILL.md` |
 | Screenshots | `.cursor/skills/run/screenshots/` (gitignored) |
 
-After changing MCP config, **reconnect / restart the Playwright MCP server** in Cursor.
+Pin `@playwright/mcp` to a specific version (not `@latest`). After changing MCP
+config, **reconnect / restart the Playwright MCP server** in Cursor.
 
 ## Local servers
 

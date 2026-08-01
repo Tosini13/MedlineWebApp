@@ -85,7 +85,7 @@ Specs: navigate → assert key text/URL → optional console-error collector. Th
 
 **Unit (MR):** Node image matching engines; cache `.npm/`; if Alpine install `git`; `GIT_DEPTH: '0'`; `npm ci` then fetch MR target and `npm run test:changed -- origin/$TARGET`. Trigger on `src/**`, lockfile, `vitest.config.ts`.
 
-**E2E (MR):** `mcr.microsoft.com/playwright:vX.Y.Z-noble` matching package version; `npm ci` + `npm run test:e2e`; artifact `playwright-report/` on failure. Trigger on `src/**`, `e2e/**`, lockfile, `playwright.config.ts`.
+**E2E (MR):** `mcr.microsoft.com/playwright:vX.Y.Z-noble` matching package version; `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` on install; `npm ci` + `npm run test:e2e`; artifact `playwright-report/` on failure. Path-filter to `src/**`, `e2e/**`, lockfile, `playwright.config.ts` (plus a always-green gate job if the check is required).
 
 ## 5. AI browser automation (not CI)
 
@@ -101,7 +101,7 @@ Specs: navigate → assert key text/URL → optional console-error collector. Th
       "command": "npx",
       "args": [
         "-y",
-        "@playwright/mcp@latest",
+        "@playwright/mcp@0.0.78",
         "--viewport-size=1440,900",
         "--output-dir=.cursor/skills/run/screenshots"
       ],

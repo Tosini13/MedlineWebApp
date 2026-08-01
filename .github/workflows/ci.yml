@@ -20,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # vitest --changed / full history for related tooling
+          # Full history so vitest --changed can diff against the PR base.
           fetch-depth: 0
 
       # v6 runs on Node 24; v4 uses deprecated Node 20 and breaks the self-installer.
@@ -40,7 +40,14 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Unit tests (changed files on PR)
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch --no-tags origin "${{ github.base_ref }}"
+          pnpm test:changed -- "origin/${{ github.base_ref }}"
+
       - name: Unit tests
+        if: github.event_name != 'pull_request'
         run: pnpm test
 
       - name: Build application
@@ -49,8 +56,31 @@ jobs:
       - name: Build Storybook
         run: pnpm build-storybook
 
+  changes:
+    name: Detect e2e-relevant paths
+    runs-on: ubuntu-latest
+    outputs:
+      e2e: ${{ steps.filter.outputs.e2e }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            e2e:
+              - 'src/**'
+              - 'e2e/**'
+              - 'playwright.config.ts'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'vite.config.*'
+              - 'tsconfig.json'
+              - '.github/workflows/ci.yml'
+
   e2e:
     name: Playwright e2e
+    needs: changes
+    if: github.event_name == 'push' || needs.changes.outputs.e2e == 'true'
     runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/playwright:v1.62.1-noble
@@ -66,6 +96,8 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
 
       - name: Run e2e smoke tests
         run: pnpm test:e2e
@@ -82,6 +114,24 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  # Always reports a conclusion so a required "e2e" check is not stuck pending
+  # when path filters skip the Playwright job on docs-only PRs.
+  e2e-result:
+    name: Playwright e2e (gate)
+    needs: [changes, e2e]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Evaluate e2e outcome
+        run: |
+          ran="${{ github.event_name == 'push' || needs.changes.outputs.e2e == 'true' }}"
+          result="${{ needs.e2e.result }}"
+          if [ "$ran" = "true" ] && [ "$result" != "success" ]; then
+            echo "Playwright e2e failed (result=$result)"
+            exit 1
+          fi
+          echo "Playwright e2e ok or skipped (ran=$ran, result=$result)"
 
   security:
     name: Dependency Audit & Secret Scan
