@@ -23,13 +23,18 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const activeLineId = activeLineIdFromPath(pathname);
 
   return (
-    <nav className="flex flex-col gap-1">
-      <TimelinesNav lines={lines} activeLineId={activeLineId} onNavigate={onNavigate} />
+    <nav className="flex h-full min-h-0 flex-col gap-1">
+      <TimelinesNav
+        lines={lines}
+        activeLineId={activeLineId}
+        isTimelinesHome={pathname === "/"}
+        onNavigate={onNavigate}
+      />
       <Link
         to="/search"
         onClick={onNavigate}
         className={cn(
-          "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
+          "flex shrink-0 cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
         )}
         activeProps={{ className: "bg-accent text-accent-foreground" }}
       >
@@ -49,7 +54,7 @@ export function AppShell({ email, children }: AppShellProps) {
         <Link to="/" className="cursor-pointer px-2">
           <Brand />
         </Link>
-        <div className="mt-8 flex-1 overflow-y-auto">
+        <div className="mt-8 flex min-h-0 flex-1 flex-col">
           <NavLinks />
         </div>
         <p className="px-3 text-xs text-muted-foreground">
@@ -72,7 +77,7 @@ export function AppShell({ email, children }: AppShellProps) {
                     <SheetTitle asChild>
                       <Brand />
                     </SheetTitle>
-                    <div className="mt-8 flex-1 overflow-y-auto">
+                    <div className="mt-8 flex min-h-0 flex-1 flex-col">
                       <NavLinks onNavigate={() => setOpen(false)} />
                     </div>
                   </div>
