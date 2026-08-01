@@ -1,11 +1,15 @@
-import { Link } from "@tanstack/react-router";
-import { LayoutGrid, Menu, Search } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Link, useRouterState } from "@tanstack/react-router";
+import { Menu, Search } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { Brand } from "@/components/app/brand";
 import { ThemeToggle } from "@/components/app/theme-toggle";
+import { TimelinesNav } from "@/components/app/timelines-nav";
 import { UserMenu } from "@/components/app/user-menu";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { linesQueryOptions } from "@/features/lines/lines.queries";
+import { activeLineIdFromPath } from "@/lib/domain/line-event-count";
 import { cn } from "@/lib/utils";
 
 interface AppShellProps {
@@ -13,29 +17,25 @@ interface AppShellProps {
   children: ReactNode;
 }
 
-const NAV_ITEMS = [
-  { to: "/", label: "Timelines", icon: LayoutGrid, exact: true },
-  { to: "/search", label: "Search", icon: Search, exact: false },
-] as const;
-
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
+  const { data: lines = [] } = useQuery(linesQueryOptions());
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const activeLineId = activeLineIdFromPath(pathname);
+
   return (
     <nav className="flex flex-col gap-1">
-      {NAV_ITEMS.map((item) => (
-        <Link
-          key={item.to}
-          to={item.to}
-          activeOptions={{ exact: item.exact }}
-          onClick={onNavigate}
-          className={cn(
-            "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
-          )}
-          activeProps={{ className: "bg-accent text-accent-foreground" }}
-        >
-          <item.icon className="size-4" />
-          {item.label}
-        </Link>
-      ))}
+      <TimelinesNav lines={lines} activeLineId={activeLineId} onNavigate={onNavigate} />
+      <Link
+        to="/search"
+        onClick={onNavigate}
+        className={cn(
+          "flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground",
+        )}
+        activeProps={{ className: "bg-accent text-accent-foreground" }}
+      >
+        <Search className="size-4" />
+        Search
+      </Link>
     </nav>
   );
 }
@@ -49,7 +49,7 @@ export function AppShell({ email, children }: AppShellProps) {
         <Link to="/" className="cursor-pointer px-2">
           <Brand />
         </Link>
-        <div className="mt-8 flex-1">
+        <div className="mt-8 flex-1 overflow-y-auto">
           <NavLinks />
         </div>
         <p className="px-3 text-xs text-muted-foreground">
@@ -72,7 +72,7 @@ export function AppShell({ email, children }: AppShellProps) {
                     <SheetTitle asChild>
                       <Brand />
                     </SheetTitle>
-                    <div className="mt-8 flex-1">
+                    <div className="mt-8 flex-1 overflow-y-auto">
                       <NavLinks onNavigate={() => setOpen(false)} />
                     </div>
                   </div>
