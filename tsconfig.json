@@ -22,6 +22,14 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "scripts", "vite.config.ts", "vitest.config.ts", ".storybook"],
+  "include": [
+    "src",
+    "scripts",
+    "e2e",
+    "vite.config.ts",
+    "vitest.config.ts",
+    "playwright.config.ts",
+    ".storybook"
+  ],
   "exclude": ["node_modules", "dist", ".output", ".nitro"]
 }

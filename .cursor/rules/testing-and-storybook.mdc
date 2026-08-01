@@ -34,10 +34,11 @@ testable app logic — still run the full test suite before finishing.
 
 ## Vitest
 
-- Unit tests use Vitest + Testing Library (`jsdom`), setup in `src/test/setup.ts`.
+- Two Vitest projects: `unit` (`*.test.ts`, Node) and `component` (`*.test.tsx`, jsdom +
+  `src/test/setup.ts`). Use `renderWithProviders` from `src/test/render.tsx` for components.
 - Test pure logic (schemas, mappers, formatters) and component behavior; mock repositories,
   never hit real Supabase.
-- Run with `pnpm test` (CI) / `pnpm test:watch` (local).
+- Run with `pnpm test` (CI) / `pnpm test:watch` (local). E2E: `pnpm test:e2e` (Playwright).
 
 ## Storybook
 
