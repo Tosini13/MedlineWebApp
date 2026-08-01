@@ -5,7 +5,7 @@ A secure web app for organizing personal medical history as **timelines** of eve
 the **MedlineMobile** app, migrated from Firebase to **Supabase**.
 
 Built with **TanStack Start**, **Supabase**, **shadcn/ui** (Tailwind v4), **TypeScript**, tested
-with **Vitest**, and documented in **Storybook**.
+with **Vitest** + **Playwright**, and documented in **Storybook**.
 
 > Full architecture, migration plan, data model, security model, and setup details live in
 > **[docs.md](./docs.md)**.
@@ -61,7 +61,9 @@ project environment variables. Update Supabase Auth redirect URLs for your `*.ve
 | `pnpm build` | Production build |
 | `pnpm typecheck` | TypeScript check |
 | `pnpm lint` / `pnpm lint:fix` | Biome lint (and autofix) |
-| `pnpm test` / `pnpm test:watch` | Vitest |
+| `pnpm test` / `pnpm test:watch` | Vitest (unit + component) |
+| `pnpm test:changed` | Vitest against changed files |
+| `pnpm test:e2e` | Playwright smoke e2e |
 | `pnpm storybook` / `pnpm build-storybook` | Component workshop / static build |
 | `pnpm db:push` / `pnpm db:types` / `pnpm db:reset` | Supabase schema management |
 
@@ -76,6 +78,11 @@ This app handles sensitive health data. It enforces auth + zod validation in eve
 function, Postgres Row Level Security, private document storage with signed URLs, security
 headers/CSP, rate-limited auth, and CI dependency/secret scanning. Details in
 **[docs.md](./docs.md#6-security-sensitive-data)**.
+
+## Browser automation
+
+AI browser checks (Playwright MCP + Cursor `run` skill) are documented in
+**[docs/browser-automation.md](./docs/browser-automation.md)**. Dev-time only — not CI.
 
 ## Contributing
 

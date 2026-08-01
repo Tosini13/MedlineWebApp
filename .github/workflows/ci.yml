@@ -19,6 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # vitest --changed / full history for related tooling
+          fetch-depth: 0
 
       # v6 runs on Node 24; v4 uses deprecated Node 20 and breaks the self-installer.
       - uses: pnpm/action-setup@v6
@@ -45,6 +48,40 @@ jobs:
 
       - name: Build Storybook
         run: pnpm build-storybook
+
+  e2e:
+    name: Playwright e2e
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.62.1-noble
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run e2e smoke tests
+        run: pnpm test:e2e
+        env:
+          CI: true
+          # Publishable keys only — required for the app to boot under webServer.
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_KEY: ${{ secrets.VITE_SUPABASE_KEY }}
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
 
   security:
     name: Dependency Audit & Secret Scan

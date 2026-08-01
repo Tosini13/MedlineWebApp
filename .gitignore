@@ -29,3 +29,8 @@ supabase/.temp/
 .vscode/*
 !.vscode/extensions.json
 coverage/
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/

@@ -7,10 +7,26 @@ export default defineConfig({
     tsconfigPaths: true,
   },
   test: {
-    environment: "jsdom",
     globals: true,
-    setupFiles: ["./src/test/setup.ts"],
-    include: ["src/**/*.{test,spec}.{ts,tsx}"],
     exclude: ["node_modules", ".output", "e2e"],
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: "unit",
+          environment: "node",
+          include: ["src/**/*.test.ts"],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: "component",
+          environment: "jsdom",
+          include: ["src/**/*.test.tsx"],
+          setupFiles: ["./src/test/setup.ts"],
+        },
+      },
+    ],
   },
 });
