@@ -1,3 +1,4 @@
+import { eventCountFromRelation } from "@/lib/domain/line-event-count";
 import type { Line } from "@/lib/domain/types";
 import type { Tables } from "../database.types";
 import { BaseRepository } from "./base.repository";
@@ -14,13 +15,19 @@ export interface UpdateLineInput {
   color?: string;
 }
 
-function toLine(row: Tables<"lines">): Line {
+type LineRow = Tables<"lines">;
+type LineRowWithEventCount = LineRow & {
+  events?: Array<{ count: number }> | null;
+};
+
+function toLine(row: LineRowWithEventCount, eventCount = 0): Line {
   return {
     id: row.id,
     ownerId: row.owner_id,
     title: row.title,
     description: row.description,
     color: row.color,
+    eventCount,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -30,10 +37,12 @@ export class LinesRepository extends BaseRepository {
   async list(): Promise<Line[]> {
     const { data, error } = await this.client
       .from("lines")
-      .select("*")
+      .select("*, events(count)")
       .order("created_at", { ascending: false });
     if (error) this.fail("Failed to load timelines.", error);
-    return (data ?? []).map(toLine);
+    return ((data ?? []) as LineRowWithEventCount[]).map((row) =>
+      toLine(row, eventCountFromRelation(row.events)),
+    );
   }
 
   async getById(id: string): Promise<Line | null> {
@@ -81,11 +90,13 @@ export class LinesRepository extends BaseRepository {
     const like = `%${term}%`;
     const { data, error } = await this.client
       .from("lines")
-      .select("*")
+      .select("*, events(count)")
       .or(`title.ilike.${like},description.ilike.${like}`)
       .order("updated_at", { ascending: false })
       .limit(20);
     if (error) this.fail("Search failed.", error);
-    return (data ?? []).map(toLine);
+    return ((data ?? []) as LineRowWithEventCount[]).map((row) =>
+      toLine(row, eventCountFromRelation(row.events)),
+    );
   }
 }

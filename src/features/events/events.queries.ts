@@ -1,4 +1,5 @@
 import { queryOptions, useMutation, useQueryClient } from "@tanstack/react-query";
+import { linesKeys } from "@/features/lines/lines.queries";
 import type { MedEventWithDocuments } from "@/lib/domain/types";
 import { createEvent, deleteEvent, fetchEvent, fetchEventsByLine, updateEvent } from "./events.api";
 import type { CreateEventValues, UpdateEventValues } from "./events.schema";
@@ -24,7 +25,10 @@ export function useCreateEvent(lineId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (values: CreateEventValues) => createEvent({ data: values }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: eventsKeys.byLine(lineId) }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: eventsKeys.byLine(lineId) });
+      queryClient.invalidateQueries({ queryKey: linesKeys.all });
+    },
   });
 }
 
@@ -43,6 +47,9 @@ export function useDeleteEvent(lineId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => deleteEvent({ data: { id } }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: eventsKeys.byLine(lineId) }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: eventsKeys.byLine(lineId) });
+      queryClient.invalidateQueries({ queryKey: linesKeys.all });
+    },
   });
 }

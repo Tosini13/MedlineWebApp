@@ -9,6 +9,8 @@ export interface Line {
   title: string;
   description: string | null;
   color: string;
+  /** Present on list responses; 0 when unknown (create/update/getById). */
+  eventCount: number;
   createdAt: string;
   updatedAt: string;
 }

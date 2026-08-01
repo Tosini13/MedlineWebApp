@@ -2,8 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, CalendarDays, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { EmptyState } from "@/components/app/empty-state";
+import { EntitySettingsMenu } from "@/components/app/entity-settings-menu";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -71,34 +71,28 @@ function EventDetailPage() {
                 </span>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button asChild variant="outline" size="icon" aria-label="Edit event">
+            <EntitySettingsMenu
+              ariaLabel="Event settings"
+              editItem={
                 <Link to="/lines/$lineId/events/$eventId/edit" params={{ lineId, eventId }}>
                   <Pencil className="size-4" />
+                  Edit
                 </Link>
-              </Button>
-              <ConfirmDialog
-                destructive
-                title="Delete this event?"
-                description="This permanently deletes the event and its documents."
-                confirmLabel="Delete"
-                onConfirm={() =>
-                  deleteEvent.mutate(eventId, {
-                    onSuccess: () => {
-                      toast.success("Event deleted.");
-                      navigate({ to: "/lines/$lineId", params: { lineId } });
-                    },
-                    onError: (error) =>
-                      toast.error(mutationErrorMessage(error, "Could not delete event.")),
-                  })
-                }
-                trigger={
-                  <Button variant="outline" size="icon" aria-label="Delete event">
-                    <Trash2 className="size-4" />
-                  </Button>
-                }
-              />
-            </div>
+              }
+              deleteTitle="Delete this event?"
+              deleteDescription="This permanently deletes the event and its documents."
+              isDeleting={deleteEvent.isPending}
+              onDelete={() =>
+                deleteEvent.mutate(eventId, {
+                  onSuccess: () => {
+                    toast.success("Event deleted.");
+                    navigate({ to: "/lines/$lineId", params: { lineId } });
+                  },
+                  onError: (error) =>
+                    toast.error(mutationErrorMessage(error, "Could not delete event.")),
+                })
+              }
+            />
           </div>
 
           {event.description && (

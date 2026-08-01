@@ -7,6 +7,35 @@
   padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
 }
 
+/*
+ * Minimalist scrollbar — apply via `scrollbar-minimal` on overflow containers.
+ * Thin, low-contrast thumb; transparent track. Works for Firefox + WebKit.
+ */
+@utility scrollbar-minimal {
+  /* Keep the thumb in its own lane so it never overlays content. */
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in oklch, var(--muted-foreground) 40%, transparent) transparent;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: color-mix(in oklch, var(--muted-foreground) 40%, transparent);
+    border-radius: 9999px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in oklch, var(--muted-foreground) 60%, transparent);
+  }
+}
+
 @media (display-mode: standalone) {
   .app-shell-main {
     padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
