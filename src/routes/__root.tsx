@@ -4,7 +4,9 @@ import { createRootRouteWithContext, HeadContent, Outlet, Scripts } from "@tanst
 import type { ReactNode } from "react";
 import { ThemeProvider } from "@/components/app/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
-import { type AppUser, fetchCurrentUser } from "@/features/auth/auth.api";
+import type { AppUser } from "@/features/auth/auth.api";
+import { resolveCurrentUser } from "@/features/auth/auth.queries";
+import { AuthSessionListener } from "@/features/auth/components/auth-session-listener";
 import appCss from "@/styles/app.css?url";
 
 export interface RootContext {
@@ -12,8 +14,8 @@ export interface RootContext {
 }
 
 export const Route = createRootRouteWithContext<RootContext>()({
-  beforeLoad: async (): Promise<{ user: AppUser | null }> => {
-    const user = await fetchCurrentUser();
+  beforeLoad: async ({ context }): Promise<{ user: AppUser | null }> => {
+    const user = await resolveCurrentUser(context.queryClient);
     return { user };
   },
   head: () => ({
@@ -112,6 +114,7 @@ function RootComponent() {
     <RootDocument>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
+          <AuthSessionListener />
           <Outlet />
           <Toaster richColors closeButton position="top-right" />
         </ThemeProvider>

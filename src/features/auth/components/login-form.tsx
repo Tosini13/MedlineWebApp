@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -16,10 +16,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PENDING_APPROVAL_MESSAGE, signInFn } from "../auth.api";
+import { clearCurrentUserCache } from "../auth.queries";
 import { type SignInValues, signInSchema } from "../auth.schema";
 
 export function LoginForm() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const form = useForm<SignInValues>({
     resolver: zodResolver(signInSchema),
     defaultValues: { email: "", password: "" },
@@ -28,6 +30,7 @@ export function LoginForm() {
   const mutation = useMutation({
     mutationFn: (values: SignInValues) => signInFn({ data: values }),
     onSuccess: async () => {
+      clearCurrentUserCache(queryClient);
       await navigate({ to: "/" });
     },
     onError: (error) => {
