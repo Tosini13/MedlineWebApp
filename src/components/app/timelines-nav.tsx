@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronRight, LayoutGrid, Search, X } from "lucide-react";
+import { ChevronDown, ChevronRight, LayoutGrid, Search, X } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -128,10 +128,10 @@ export function TimelinesNav({
           aria-expanded={expanded}
           onClick={() => setExpanded((value) => !value)}
         >
-          <ChevronRight
+          <ChevronDown
             className={cn(
               "size-3.5 transition-transform duration-200 ease-out",
-              expanded && "rotate-90",
+              expanded && "rotate-180",
             )}
           />
         </Button>
