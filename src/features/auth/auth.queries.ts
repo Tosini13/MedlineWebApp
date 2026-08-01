@@ -1,3 +1,4 @@
+import type { AuthChangeEvent } from "@supabase/supabase-js";
 import { type QueryClient, queryOptions } from "@tanstack/react-query";
 import { type AppUser, fetchCurrentUser } from "./auth.api";
 
@@ -33,4 +34,19 @@ export function clearCurrentUserCache(queryClient: QueryClient): void {
 /** Seed/overwrite the cached session (e.g. set null on sign-out). */
 export function setCurrentUserCache(queryClient: QueryClient, user: AppUser | null): void {
   queryClient.setQueryData(authKeys.user, user);
+}
+
+/**
+ * React to Supabase auth lifecycle events.
+ * On `SIGNED_OUT`, drop cached medical data and seed `user: null` so route
+ * guards redirect without waiting on a network round-trip.
+ * @returns whether the router should re-run `beforeLoad` guards
+ */
+export function applyAuthStateChange(event: AuthChangeEvent, queryClient: QueryClient): boolean {
+  if (event !== "SIGNED_OUT") {
+    return false;
+  }
+  queryClient.clear();
+  setCurrentUserCache(queryClient, null);
+  return true;
 }

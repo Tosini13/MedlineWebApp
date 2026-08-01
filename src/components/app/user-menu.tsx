@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { signOutFn } from "@/features/auth/auth.api";
-import { setCurrentUserCache } from "@/features/auth/auth.queries";
+import { applyAuthStateChange } from "@/features/auth/auth.queries";
 
 interface UserMenuProps {
   email: string | null;
@@ -30,7 +30,7 @@ export function UserMenu({ email }: UserMenuProps) {
   const signOut = useMutation({
     mutationFn: () => signOutFn(),
     onSuccess: async () => {
-      setCurrentUserCache(queryClient, null);
+      applyAuthStateChange("SIGNED_OUT", queryClient);
       await router.invalidate();
       await router.navigate({ to: "/login" });
     },

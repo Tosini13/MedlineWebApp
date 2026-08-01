@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/app/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import type { AppUser } from "@/features/auth/auth.api";
 import { resolveCurrentUser } from "@/features/auth/auth.queries";
+import { AuthSessionListener } from "@/features/auth/components/auth-session-listener";
 import appCss from "@/styles/app.css?url";
 
 export interface RootContext {
@@ -113,6 +114,7 @@ function RootComponent() {
     <RootDocument>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
+          <AuthSessionListener />
           <Outlet />
           <Toaster richColors closeButton position="top-right" />
         </ThemeProvider>
