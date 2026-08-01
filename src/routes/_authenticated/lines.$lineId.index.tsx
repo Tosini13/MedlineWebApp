@@ -3,8 +3,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, CalendarPlus, Pencil, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { ConfirmDialog } from "@/components/app/confirm-dialog";
 import { EmptyState } from "@/components/app/empty-state";
+import { EntitySettingsMenu } from "@/components/app/entity-settings-menu";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Timeline } from "@/features/events/components/timeline";
@@ -79,17 +79,18 @@ function LineDetailPage() {
                 Add event
               </Link>
             </Button>
-            <Button asChild variant="outline" size="icon" aria-label="Edit timeline">
-              <Link to="/lines/$lineId/edit" params={{ lineId }}>
-                <Pencil className="size-4" />
-              </Link>
-            </Button>
-            <ConfirmDialog
-              destructive
-              title="Delete this timeline?"
-              description="This permanently deletes the timeline and all of its events and documents."
-              confirmLabel="Delete"
-              onConfirm={() =>
+            <EntitySettingsMenu
+              ariaLabel="Timeline settings"
+              editItem={
+                <Link to="/lines/$lineId/edit" params={{ lineId }}>
+                  <Pencil className="size-4" />
+                  Edit
+                </Link>
+              }
+              deleteTitle="Delete this timeline?"
+              deleteDescription="This permanently deletes the timeline and all of its events and documents."
+              isDeleting={deleteLine.isPending}
+              onDelete={() =>
                 deleteLine.mutate(lineId, {
                   onSuccess: () => {
                     toast.success("Timeline deleted.");
@@ -98,11 +99,6 @@ function LineDetailPage() {
                   onError: (error) =>
                     toast.error(mutationErrorMessage(error, "Could not delete timeline.")),
                 })
-              }
-              trigger={
-                <Button variant="outline" size="icon" aria-label="Delete timeline">
-                  <Trash2 className="size-4" />
-                </Button>
               }
             />
           </div>

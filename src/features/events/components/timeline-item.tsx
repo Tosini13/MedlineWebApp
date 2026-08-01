@@ -1,13 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-import { ConfirmDialog } from "@/components/app/confirm-dialog";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Pencil } from "lucide-react";
+import { EntitySettingsMenu } from "@/components/app/entity-settings-menu";
 import { eventTypeMeta } from "@/lib/domain/event-type";
 import type { MedEvent } from "@/lib/domain/types";
 import { formatDate } from "@/lib/format";
@@ -70,45 +63,23 @@ export function TimelineItem({
             )}
           </div>
         </Link>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-8 shrink-0 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
-              aria-label={`Actions for ${event.title}`}
-            >
-              <MoreHorizontal className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem asChild>
-              <Link to="/lines/$lineId/events/$eventId/edit" params={{ lineId, eventId: event.id }}>
-                <Pencil className="size-4" />
-                Edit
-              </Link>
-            </DropdownMenuItem>
-            {onDelete && (
-              <ConfirmDialog
-                destructive
-                title="Delete this event?"
-                description="This permanently deletes the event and its documents."
-                confirmLabel="Delete"
-                onConfirm={() => onDelete(event.id)}
-                trigger={
-                  <DropdownMenuItem
-                    variant="destructive"
-                    disabled={isDeleting}
-                    onSelect={(e) => e.preventDefault()}
-                  >
-                    <Trash2 className="size-4" />
-                    Delete
-                  </DropdownMenuItem>
-                }
-              />
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <EntitySettingsMenu
+          ariaLabel={`Settings for ${event.title}`}
+          triggerVariant="ghost"
+          triggerClassName="opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
+          editItem={
+            <Link to="/lines/$lineId/events/$eventId/edit" params={{ lineId, eventId: event.id }}>
+              <Pencil className="size-4" />
+              Edit
+            </Link>
+          }
+          deleteTitle={onDelete ? "Delete this event?" : undefined}
+          deleteDescription={
+            onDelete ? "This permanently deletes the event and its documents." : undefined
+          }
+          isDeleting={isDeleting}
+          onDelete={onDelete ? () => onDelete(event.id) : undefined}
+        />
       </div>
     </li>
   );
