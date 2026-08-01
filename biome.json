@@ -28,6 +28,9 @@
     "enabled": true,
     "rules": {
       "recommended": true,
+      "correctness": {
+        "noUnusedImports": "error"
+      },
       "suspicious": {
         "noConsole": { "level": "warn", "options": { "allow": ["error", "warn"] } }
       },
