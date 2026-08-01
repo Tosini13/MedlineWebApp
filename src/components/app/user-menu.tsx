@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useRouter } from "@tanstack/react-router";
 import { LogOut, UserCog } from "lucide-react";
 import { toast } from "sonner";
@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { signOutFn } from "@/features/auth/auth.api";
+import { setCurrentUserCache } from "@/features/auth/auth.queries";
 
 interface UserMenuProps {
   email: string | null;
@@ -25,9 +26,11 @@ function initials(email: string | null): string {
 
 export function UserMenu({ email }: UserMenuProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const signOut = useMutation({
     mutationFn: () => signOutFn(),
     onSuccess: async () => {
+      setCurrentUserCache(queryClient, null);
       await router.invalidate();
       await router.navigate({ to: "/login" });
     },

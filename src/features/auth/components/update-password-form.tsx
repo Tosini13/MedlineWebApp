@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -15,10 +15,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { updatePasswordFn } from "../auth.api";
+import { clearCurrentUserCache } from "../auth.queries";
 import { type UpdatePasswordValues, updatePasswordSchema } from "../auth.schema";
 
 export function UpdatePasswordForm() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const form = useForm<UpdatePasswordValues>({
     resolver: zodResolver(updatePasswordSchema),
     defaultValues: { password: "" },
@@ -27,6 +29,7 @@ export function UpdatePasswordForm() {
   const mutation = useMutation({
     mutationFn: (values: UpdatePasswordValues) => updatePasswordFn({ data: values }),
     onSuccess: async () => {
+      clearCurrentUserCache(queryClient);
       toast.success("Password updated.");
       await navigate({ to: "/" });
     },
