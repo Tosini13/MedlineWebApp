@@ -1,10 +1,6 @@
 # Testing + AI browser automation setup playbook
 
-Canonical guide for reproducing the stack from branch `INTG-496-setup-tests`
-in other frontend projects (especially with Cursor).
-
-Reference implementation lives in this repo. Adapt ports, path aliases,
-providers, and CI to the target project — do not invent extra tooling.
+A guide to implement testing and AI browser automation setup.
 
 Copy this playbook (and/or the `setup-tests` skill) into the target repo, or
 paste the example prompt from the skill into chat with `@docs/testing-setup-playbook.md`.
@@ -136,17 +132,16 @@ Add a `renderWithProviders` that wraps the app’s real providers (router, query
 client, auth/context mocks). Keep network out of component tests — stub API
 modules or context values.
 
-Reference in this repo: [`src/test/render.tsx`](../src/test/render.tsx),
-[`src/test/mocks/`](../src/test/mocks/).
+Reference in this repo: [`src/test/render.tsx`](../src/test/render.tsx).
 
 ### What to test first
 
-- Pure utils under `src/common/**` (or equivalent)
-- A few lib / input components with RTL roles and labels
+- Pure utils / schemas under `src/lib/**` or `src/features/**` (or equivalent)
+- A few UI / app components with RTL roles and labels
 - Prefer `getByRole` / `getByLabelText` over class names or DOM structure
 
-Examples: [`src/common/math.test.ts`](../src/common/math.test.ts),
-[`src/components/lib/button.test.tsx`](../src/components/lib/button.test.tsx).
+Examples: [`src/lib/utils.test.ts`](../src/lib/utils.test.ts),
+[`src/components/ui/button.test.tsx`](../src/components/ui/button.test.tsx).
 
 ---
 
@@ -192,8 +187,8 @@ Thin smoke tests only:
 2. Assert key text / URL / table headers
 3. Optionally collect `console` + `pageerror` and assert no errors
 
-Examples: [`e2e/finance-overview.spec.ts`](../e2e/finance-overview.spec.ts),
-[`e2e/clients.spec.ts`](../e2e/clients.spec.ts).
+Examples: [`e2e/login.spec.ts`](../e2e/login.spec.ts),
+[`e2e/signup.spec.ts`](../e2e/signup.spec.ts).
 
 ### `.gitignore`
 
@@ -205,17 +200,21 @@ Examples: [`e2e/finance-overview.spec.ts`](../e2e/finance-overview.spec.ts),
 
 ---
 
-## 4. CI (GitLab)
+## 4. CI
 
-Patterns from [`.gitlab-ci.yml`](../.gitlab-ci.yml):
+Adapt to whatever CI the target repo already uses (GitHub Actions, GitLab CI,
+etc.). Typical jobs:
 
 ### Unit tests (changed files only)
 
-- Image: `node:22-alpine` (match project engines)
-- Cache `.npm/` keyed on `package-lock.json`
-- On Alpine: `apk add --no-cache git`
-- `GIT_DEPTH: '0'` so `vitest --changed` can see history
-- Script:
+- Image: Node matching project engines
+- Cache package manager store keyed on lockfile
+- Full git history (`fetch-depth: 0` / `GIT_DEPTH: '0'`) so `vitest --changed`
+  can see the merge base
+- Install deps, then run `test:changed` against the PR/MR target branch
+- Trigger when `src/**`, lockfile, or `vitest.config.ts` change
+
+Example (GitLab-style script):
 
 ```bash
 npm ci --cache .npm --prefer-offline --no-audit --no-fund
@@ -223,19 +222,17 @@ git fetch origin "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
 npm run test:changed -- "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
 ```
 
-- Trigger on MR when `src/**`, lockfile, or `vitest.config.ts` change
-
 ### E2E tests
 
 - Image: `mcr.microsoft.com/playwright:vX.Y.Z-noble` (pin to `@playwright/test`)
 - Set `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` on install (image already has browsers)
-- `npm ci` then `npm run test:e2e`
+- Install deps then `npm run test:e2e` (or the project’s package manager)
 - Artifact `playwright-report/` on failure, expire in ~7 days
-- Trigger on MR when `src/**`, `e2e/**`, lockfile, or `playwright.config.ts` change
+- Trigger when `src/**`, `e2e/**`, lockfile, or `playwright.config.ts` change
 
-For GitHub Actions, see [`.github/workflows/ci.yml`](../.github/workflows/ci.yml):
-`test:changed` on PRs, Playwright container + path filter + gate job, full
-`pnpm test` on `main` pushes.
+This repo’s GitHub Actions: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)
+(`test:changed` on PRs, Playwright container + path filter + gate job, full
+`pnpm test` on `main` pushes).
 
 ---
 
@@ -279,13 +276,16 @@ Restart/reconnect MCP after adding. There is no custom driver — use upstream
 | Cursor | `.cursor/skills/run/SKILL.md` |
 | Claude Code | `.claude/skills/run/SKILL.md` |
 
-Copy from [`.claude/skills/run/SKILL.md`](../.claude/skills/run/SKILL.md) and
+Copy from [`.cursor/skills/run/SKILL.md`](../.cursor/skills/run/SKILL.md) and
 adapt:
 
 - Dev / Storybook commands and ports
 - Auth bypass or login requirements
 - Screenshot output dir (match MCP `--output-dir`)
 - Project-specific gotchas (e.g. Storybook iframe reload)
+
+Optional Claude Code copy: `.claude/skills/run/SKILL.md` (same content, paths
+adjusted if needed).
 
 Ignore generated screenshots:
 
@@ -301,14 +301,14 @@ from the README so humans know what is wired.
 
 ---
 
-## Cursor-specific adaptations
+## Multi-client notes
 
-| Claude-oriented (this repo) | Cursor |
-| --- | --- |
-| `.mcp.json` | Also configure Cursor MCP / `.cursor/mcp.json` |
-| `.claude/skills/run/SKILL.md` | `.cursor/skills/run/SKILL.md` |
-| Screenshots under `.claude/...` | Prefer `.cursor/skills/run/screenshots` |
-| Skill mentions Claude Code | Say “Cursor agent” / screenshot / verify UI |
+| Piece | Cursor | Claude Code (optional) |
+| --- | --- | --- |
+| MCP | `.mcp.json` + `.cursor/mcp.json` | `.mcp.json` |
+| `run` skill | `.cursor/skills/run/SKILL.md` | `.claude/skills/run/SKILL.md` |
+| Screenshots | `.cursor/skills/run/screenshots` | Match that client’s skill dir |
+| Skill wording | “Cursor agent” / screenshot / verify UI | “Claude Code” if that client is used |
 
 To **implement** this stack in another repo with Cursor, use the
 [`setup-tests`](../.cursor/skills/setup-tests/SKILL.md) skill (or paste this
@@ -322,14 +322,14 @@ Copy/adapt from this repo:
 
 - [ ] `vitest.config.ts`
 - [ ] `src/test/setup.ts`
-- [ ] `src/test/render.tsx` + `src/test/mocks/*`
+- [ ] `src/test/render.tsx`
 - [ ] Example unit + component tests
 - [ ] `playwright.config.ts`
 - [ ] `e2e/*.spec.ts`
 - [ ] `.mcp.json` (and Cursor MCP equivalent)
 - [ ] `.cursor/skills/run/SKILL.md` (+ optional `.claude` copy)
 - [ ] `docs/browser-automation.md`
-- [ ] CI: unit_tests + e2e_tests
+- [ ] CI: unit + e2e jobs (e.g. `.github/workflows/ci.yml`)
 - [ ] `.gitignore` Playwright paths
 
 ## Example prompt (another project)
@@ -338,8 +338,7 @@ In the target app’s Cursor chat, attach this playbook (and optionally the
 skill), then paste:
 
 ```
-Set up testing and AI browser automation in this repo using the same approach
-as white-rabbit-ui-2 (Vitest unit + component tests, Playwright e2e + CI,
+Set up testing and AI browser automation in this repo (Vitest unit + component tests, Playwright e2e + CI,
 Playwright MCP + a Cursor `run` skill).
 
 Instructions:

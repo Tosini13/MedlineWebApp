@@ -4,13 +4,12 @@ description: >
   Implements Vitest unit/component tests, Playwright e2e + CI, and Playwright
   MCP AI browser automation in a frontend repo. Use when the user asks to set
   up tests, add Vitest/RTL/Playwright, wire CI test jobs, or add Cursor/Claude
-  browser automation MCP + run skill — especially when porting the
-  white-rabbit-ui-2 INTG-496 stack to another project.
+  browser automation MCP + run skill.
 ---
 
 # Setup tests + AI browser automation
 
-Port the white-rabbit-ui-2 (`INTG-496-setup-tests`) stack. Adapt ports, aliases,
+Adapt ports, aliases,
 providers, and CI to the target repo. Do not invent extra tooling.
 
 If `docs/testing-setup-playbook.md` exists in the workspace, read it first and
@@ -133,16 +132,18 @@ Ignore `screenshots/` under the skill dir. Add short `docs/browser-automation.md
 - [ ] MCP registered; `run` skill present with correct ports
 - [ ] User told to reconnect MCP session
 
-## Reference (white-rabbit-ui-2)
+## Reference (this repo)
 
-When that repo is available, copy from: `vitest.config.ts`, `src/test/*`, example `*.test.ts(x)`, `playwright.config.ts`, `e2e/*`, `.mcp.json`, `.claude/skills/run/SKILL.md`, `docs/browser-automation.md`, `.gitlab-ci.yml` (`unit_tests` / `e2e_tests`), `docs/testing-setup-playbook.md`.
+Copy/adapt from: `vitest.config.ts`, `src/test/*`, example `*.test.ts(x)`,
+`playwright.config.ts`, `e2e/*`, `.mcp.json`, `.cursor/skills/run/SKILL.md`,
+`docs/browser-automation.md`, `.github/workflows/ci.yml`,
+`docs/testing-setup-playbook.md`.
 
 ## Example prompt (paste in another project)
 
 ```
-Set up testing and AI browser automation in this repo using the same approach
-as white-rabbit-ui-2 (Vitest unit + component tests, Playwright e2e + CI,
-Playwright MCP + a Cursor `run` skill).
+Set up testing and AI browser automation in this repo (Vitest unit + component
+tests, Playwright e2e + CI, Playwright MCP + a Cursor `run` skill).
 
 Instructions:
 - Follow @docs/testing-setup-playbook.md and/or the setup-tests skill if present.
