@@ -1,10 +1,6 @@
 # Testing + AI browser automation setup playbook
 
-Canonical guide for reproducing the stack from branch `INTG-496-setup-tests`
-in other frontend projects (especially with Cursor).
-
-Reference implementation lives in this repo. Adapt ports, path aliases,
-providers, and CI to the target project — do not invent extra tooling.
+A guide to implement testing and AI browser automation setup.
 
 Copy this playbook (and/or the `setup-tests` skill) into the target repo, or
 paste the example prompt from the skill into chat with `@docs/testing-setup-playbook.md`.
@@ -20,7 +16,7 @@ This playbook assumes:
 | Unit / component runner | Vitest + jsdom + Testing Library |
 | E2E | Playwright (`@playwright/test`) |
 | Package manager | npm (`package-lock.json`) |
-| CI | GitLab CI (patterns map cleanly to GitHub Actions) |
+| CI | GitHub Actions (adapt patterns to the target host) |
 | AI browser | Playwright MCP (`@playwright/mcp`) |
 
 **Before installing anything**, inspect the target repo (`package.json`, lockfile,
@@ -33,7 +29,7 @@ whether to:
    Cypress, etc.) while keeping the same layering: unit → component → e2e smoke
    → CI → optional AI browser MCP.
 
-Do not force Vite/`loadEnv`/GitLab-only snippets onto a mismatched project.
+Do not force Vite/`loadEnv`/CI-host-specific snippets onto a mismatched project.
 
 ## Stack overview
 
@@ -41,7 +37,7 @@ Do not force Vite/`loadEnv`/GitLab-only snippets onto a mismatched project.
 | --- | --- | --- | --- |
 | Unit (`.test.ts`) | Vitest + Node | Yes (`test:changed`) | Pure helpers/utils |
 | Component (`.test.tsx`) | Vitest + jsdom + RTL | Yes (same job) | UI components in isolation |
-| E2E (`e2e/*.spec.ts`) | `@playwright/test` | Yes (Playwright Docker image) | Real routes + smoke flows |
+| E2E (`e2e/*.spec.ts`) | `@playwright/test` | Yes (host + cached Chromium) | Real routes + smoke flows |
 | AI browser automation | `@playwright/mcp` + agent skill | No | Interactive screenshots / visual checks during agent work |
 
 ## Rollout order
@@ -72,8 +68,8 @@ npx playwright install chromium   # local e2e only
 }
 ```
 
-Pin `@playwright/test` and the CI Playwright image to the **same** version
-(e.g. `1.62.1` ↔ `mcr.microsoft.com/playwright:v1.62.1-noble`).
+Pin `@playwright/test`. CI installs Chromium on the host runner (no Playwright
+Docker image) and caches `~/.cache/ms-playwright` keyed on the lockfile.
 
 ---
 
@@ -136,17 +132,16 @@ Add a `renderWithProviders` that wraps the app’s real providers (router, query
 client, auth/context mocks). Keep network out of component tests — stub API
 modules or context values.
 
-Reference in this repo: [`src/test/render.tsx`](../src/test/render.tsx),
-[`src/test/mocks/`](../src/test/mocks/).
+Reference in this repo: [`src/test/render.tsx`](../src/test/render.tsx).
 
 ### What to test first
 
-- Pure utils under `src/common/**` (or equivalent)
-- A few lib / input components with RTL roles and labels
+- Pure utils / schemas under `src/lib/**` or `src/features/**` (or equivalent)
+- A few UI / app components with RTL roles and labels
 - Prefer `getByRole` / `getByLabelText` over class names or DOM structure
 
-Examples: [`src/common/math.test.ts`](../src/common/math.test.ts),
-[`src/components/lib/button.test.tsx`](../src/components/lib/button.test.tsx).
+Examples: [`src/lib/utils.test.ts`](../src/lib/utils.test.ts),
+[`src/components/ui/button.test.tsx`](../src/components/ui/button.test.tsx).
 
 ---
 
@@ -192,8 +187,8 @@ Thin smoke tests only:
 2. Assert key text / URL / table headers
 3. Optionally collect `console` + `pageerror` and assert no errors
 
-Examples: [`e2e/finance-overview.spec.ts`](../e2e/finance-overview.spec.ts),
-[`e2e/clients.spec.ts`](../e2e/clients.spec.ts).
+Examples: [`e2e/login.spec.ts`](../e2e/login.spec.ts),
+[`e2e/signup.spec.ts`](../e2e/signup.spec.ts).
 
 ### `.gitignore`
 
@@ -205,37 +200,44 @@ Examples: [`e2e/finance-overview.spec.ts`](../e2e/finance-overview.spec.ts),
 
 ---
 
-## 4. CI (GitLab)
+## 4. CI
 
-Patterns from [`.gitlab-ci.yml`](../.gitlab-ci.yml):
+Adapt to whatever CI the target repo already uses (this repo: GitHub Actions).
+Typical jobs:
 
 ### Unit tests (changed files only)
 
-- Image: `node:22-alpine` (match project engines)
-- Cache `.npm/` keyed on `package-lock.json`
-- On Alpine: `apk add --no-cache git`
-- `GIT_DEPTH: '0'` so `vitest --changed` can see history
-- Script:
+- Image: Node matching project engines
+- Cache package manager store keyed on lockfile
+- Full git history (`fetch-depth: 0`) so `vitest --changed` can see the merge
+  base
+- Install deps, then run `test:changed` against the PR base branch
+- Trigger when `src/**`, lockfile, or `vitest.config.ts` change
 
-```bash
-npm ci --cache .npm --prefer-offline --no-audit --no-fund
-git fetch origin "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
-npm run test:changed -- "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+Example (GitHub Actions-style):
+
+```yaml
+- uses: actions/checkout@v4
+  with:
+    fetch-depth: 0
+- run: pnpm install --frozen-lockfile
+- run: pnpm test:changed -- "origin/${{ github.base_ref }}"
 ```
-
-- Trigger on MR when `src/**`, lockfile, or `vitest.config.ts` change
 
 ### E2E tests
 
-- Image: `mcr.microsoft.com/playwright:vX.Y.Z-noble` (pin to `@playwright/test`)
-- Set `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` on install (image already has browsers)
-- `npm ci` then `npm run test:e2e`
+- Run on `ubuntu-latest` (no Playwright Docker container — avoids ~30s image pull)
+- Set `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` on dependency install
+- Cache `~/.cache/ms-playwright` keyed on the lockfile
+- Cache miss: `pnpm exec playwright install --with-deps chromium`
+- Cache hit: `pnpm exec playwright install-deps chromium` (system libs are not cached)
+- Then `pnpm test:e2e`
 - Artifact `playwright-report/` on failure, expire in ~7 days
-- Trigger on MR when `src/**`, `e2e/**`, lockfile, or `playwright.config.ts` change
+- Trigger when `src/**`, `e2e/**`, lockfile, or `playwright.config.ts` change
 
-For GitHub Actions, see [`.github/workflows/ci.yml`](../.github/workflows/ci.yml):
-`test:changed` on PRs, Playwright container + path filter + gate job, full
-`pnpm test` on `main` pushes.
+This repo’s workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)
+(`test:changed` on PRs, host Chromium + browser cache + path filter + gate job,
+full `pnpm test` on `main` pushes).
 
 ---
 
@@ -279,13 +281,16 @@ Restart/reconnect MCP after adding. There is no custom driver — use upstream
 | Cursor | `.cursor/skills/run/SKILL.md` |
 | Claude Code | `.claude/skills/run/SKILL.md` |
 
-Copy from [`.claude/skills/run/SKILL.md`](../.claude/skills/run/SKILL.md) and
+Copy from [`.cursor/skills/run/SKILL.md`](../.cursor/skills/run/SKILL.md) and
 adapt:
 
 - Dev / Storybook commands and ports
 - Auth bypass or login requirements
 - Screenshot output dir (match MCP `--output-dir`)
 - Project-specific gotchas (e.g. Storybook iframe reload)
+
+Optional Claude Code copy: `.claude/skills/run/SKILL.md` (same content, paths
+adjusted if needed).
 
 Ignore generated screenshots:
 
@@ -301,14 +306,14 @@ from the README so humans know what is wired.
 
 ---
 
-## Cursor-specific adaptations
+## Multi-client notes
 
-| Claude-oriented (this repo) | Cursor |
-| --- | --- |
-| `.mcp.json` | Also configure Cursor MCP / `.cursor/mcp.json` |
-| `.claude/skills/run/SKILL.md` | `.cursor/skills/run/SKILL.md` |
-| Screenshots under `.claude/...` | Prefer `.cursor/skills/run/screenshots` |
-| Skill mentions Claude Code | Say “Cursor agent” / screenshot / verify UI |
+| Piece | Cursor | Claude Code (optional) |
+| --- | --- | --- |
+| MCP | `.mcp.json` + `.cursor/mcp.json` | `.mcp.json` |
+| `run` skill | `.cursor/skills/run/SKILL.md` | `.claude/skills/run/SKILL.md` |
+| Screenshots | `.cursor/skills/run/screenshots` | Match that client’s skill dir |
+| Skill wording | “Cursor agent” / screenshot / verify UI | “Claude Code” if that client is used |
 
 To **implement** this stack in another repo with Cursor, use the
 [`setup-tests`](../.cursor/skills/setup-tests/SKILL.md) skill (or paste this
@@ -322,14 +327,14 @@ Copy/adapt from this repo:
 
 - [ ] `vitest.config.ts`
 - [ ] `src/test/setup.ts`
-- [ ] `src/test/render.tsx` + `src/test/mocks/*`
+- [ ] `src/test/render.tsx`
 - [ ] Example unit + component tests
 - [ ] `playwright.config.ts`
 - [ ] `e2e/*.spec.ts`
 - [ ] `.mcp.json` (and Cursor MCP equivalent)
 - [ ] `.cursor/skills/run/SKILL.md` (+ optional `.claude` copy)
 - [ ] `docs/browser-automation.md`
-- [ ] CI: unit_tests + e2e_tests
+- [ ] CI: unit + e2e jobs (e.g. `.github/workflows/ci.yml`)
 - [ ] `.gitignore` Playwright paths
 
 ## Example prompt (another project)
@@ -338,8 +343,7 @@ In the target app’s Cursor chat, attach this playbook (and optionally the
 skill), then paste:
 
 ```
-Set up testing and AI browser automation in this repo using the same approach
-as white-rabbit-ui-2 (Vitest unit + component tests, Playwright e2e + CI,
+Set up testing and AI browser automation in this repo (Vitest unit + component tests, Playwright e2e + CI,
 Playwright MCP + a Cursor `run` skill).
 
 Instructions:
@@ -356,8 +360,8 @@ Instructions:
 - After I confirm, implement the harness, then add a small initial suite:
   1–2 pure unit tests, 1–2 component tests with a project-appropriate
   renderWithProviders, and 1–2 Playwright smoke e2e specs for the main routes.
-- Wire CI only if this repo already has CI config; adapt to GitLab or GitHub
-  Actions as present. Skip inventing a new CI system unless I ask.
+- Wire CI only if this repo already has CI config; adapt to the existing host
+  (e.g. GitHub Actions). Skip inventing a new CI system unless I ask.
 - Add Playwright MCP + `.cursor/skills/run/SKILL.md` with this app's real
   ports/commands. Tell me to reconnect MCP when done.
 - Prefer thin smoke tests over deep coverage. Do not commit secrets or baselines.
