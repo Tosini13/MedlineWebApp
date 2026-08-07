@@ -50,7 +50,7 @@ npx playwright install chromium
 
 Scripts: `test` → `vitest run`, `test:watch` → `vitest`, `test:changed` → `vitest run --changed`, `test:e2e` → `playwright test`.
 
-Pin `@playwright/test` and the CI Playwright image to the same version.
+Pin `@playwright/test`; CI installs Chromium on the host (no Playwright Docker image).
 
 ## 2. Vitest
 
@@ -84,7 +84,7 @@ Specs: navigate → assert key text/URL → optional console-error collector. Th
 
 **Unit (PR):** Node matching engines; cache package store on lockfile; `fetch-depth: 0`; install deps then `test:changed` against the PR base branch. Trigger on `src/**`, lockfile, `vitest.config.ts`.
 
-**E2E (PR):** `mcr.microsoft.com/playwright:vX.Y.Z-noble` matching package version; `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` on install; install deps + `test:e2e`; artifact `playwright-report/` on failure. Path-filter to `src/**`, `e2e/**`, lockfile, `playwright.config.ts` (plus an always-green gate job if the check is required).
+**E2E (PR):** `ubuntu-latest` (no Playwright container). `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` on install; cache `~/.cache/ms-playwright` on lockfile; on miss `playwright install --with-deps chromium`, on hit `playwright install-deps chromium`; then `test:e2e`. Artifact `playwright-report/` on failure. Path-filter to `src/**`, `e2e/**`, lockfile, `playwright.config.ts` (plus an always-green gate job if the check is required).
 
 ## 5. AI browser automation (not CI)
 

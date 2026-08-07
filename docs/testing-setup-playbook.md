@@ -37,7 +37,7 @@ Do not force Vite/`loadEnv`/CI-host-specific snippets onto a mismatched project.
 | --- | --- | --- | --- |
 | Unit (`.test.ts`) | Vitest + Node | Yes (`test:changed`) | Pure helpers/utils |
 | Component (`.test.tsx`) | Vitest + jsdom + RTL | Yes (same job) | UI components in isolation |
-| E2E (`e2e/*.spec.ts`) | `@playwright/test` | Yes (Playwright Docker image) | Real routes + smoke flows |
+| E2E (`e2e/*.spec.ts`) | `@playwright/test` | Yes (host + cached Chromium) | Real routes + smoke flows |
 | AI browser automation | `@playwright/mcp` + agent skill | No | Interactive screenshots / visual checks during agent work |
 
 ## Rollout order
@@ -68,8 +68,8 @@ npx playwright install chromium   # local e2e only
 }
 ```
 
-Pin `@playwright/test` and the CI Playwright image to the **same** version
-(e.g. `1.62.1` ↔ `mcr.microsoft.com/playwright:v1.62.1-noble`).
+Pin `@playwright/test`. CI installs Chromium on the host runner (no Playwright
+Docker image) and caches `~/.cache/ms-playwright` keyed on the lockfile.
 
 ---
 
@@ -226,15 +226,18 @@ Example (GitHub Actions-style):
 
 ### E2E tests
 
-- Image: `mcr.microsoft.com/playwright:vX.Y.Z-noble` (pin to `@playwright/test`)
-- Set `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` on install (image already has browsers)
-- Install deps then `npm run test:e2e` (or the project’s package manager)
+- Run on `ubuntu-latest` (no Playwright Docker container — avoids ~30s image pull)
+- Set `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` on dependency install
+- Cache `~/.cache/ms-playwright` keyed on the lockfile
+- Cache miss: `pnpm exec playwright install --with-deps chromium`
+- Cache hit: `pnpm exec playwright install-deps chromium` (system libs are not cached)
+- Then `pnpm test:e2e`
 - Artifact `playwright-report/` on failure, expire in ~7 days
 - Trigger when `src/**`, `e2e/**`, lockfile, or `playwright.config.ts` change
 
 This repo’s workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)
-(`test:changed` on PRs, Playwright container + path filter + gate job, full
-`pnpm test` on `main` pushes).
+(`test:changed` on PRs, host Chromium + browser cache + path filter + gate job,
+full `pnpm test` on `main` pushes).
 
 ---
 
