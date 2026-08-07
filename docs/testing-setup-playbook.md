@@ -16,7 +16,7 @@ This playbook assumes:
 | Unit / component runner | Vitest + jsdom + Testing Library |
 | E2E | Playwright (`@playwright/test`) |
 | Package manager | npm (`package-lock.json`) |
-| CI | GitLab CI (patterns map cleanly to GitHub Actions) |
+| CI | GitHub Actions (adapt patterns to the target host) |
 | AI browser | Playwright MCP (`@playwright/mcp`) |
 
 **Before installing anything**, inspect the target repo (`package.json`, lockfile,
@@ -29,7 +29,7 @@ whether to:
    Cypress, etc.) while keeping the same layering: unit → component → e2e smoke
    → CI → optional AI browser MCP.
 
-Do not force Vite/`loadEnv`/GitLab-only snippets onto a mismatched project.
+Do not force Vite/`loadEnv`/CI-host-specific snippets onto a mismatched project.
 
 ## Stack overview
 
@@ -202,24 +202,26 @@ Examples: [`e2e/login.spec.ts`](../e2e/login.spec.ts),
 
 ## 4. CI
 
-Adapt to whatever CI the target repo already uses (GitHub Actions, GitLab CI,
-etc.). Typical jobs:
+Adapt to whatever CI the target repo already uses (this repo: GitHub Actions).
+Typical jobs:
 
 ### Unit tests (changed files only)
 
 - Image: Node matching project engines
 - Cache package manager store keyed on lockfile
-- Full git history (`fetch-depth: 0` / `GIT_DEPTH: '0'`) so `vitest --changed`
-  can see the merge base
-- Install deps, then run `test:changed` against the PR/MR target branch
+- Full git history (`fetch-depth: 0`) so `vitest --changed` can see the merge
+  base
+- Install deps, then run `test:changed` against the PR base branch
 - Trigger when `src/**`, lockfile, or `vitest.config.ts` change
 
-Example (GitLab-style script):
+Example (GitHub Actions-style):
 
-```bash
-npm ci --cache .npm --prefer-offline --no-audit --no-fund
-git fetch origin "$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
-npm run test:changed -- "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+```yaml
+- uses: actions/checkout@v4
+  with:
+    fetch-depth: 0
+- run: pnpm install --frozen-lockfile
+- run: pnpm test:changed -- "origin/${{ github.base_ref }}"
 ```
 
 ### E2E tests
@@ -230,7 +232,7 @@ npm run test:changed -- "origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
 - Artifact `playwright-report/` on failure, expire in ~7 days
 - Trigger when `src/**`, `e2e/**`, lockfile, or `playwright.config.ts` change
 
-This repo’s GitHub Actions: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)
+This repo’s workflow: [`.github/workflows/ci.yml`](../.github/workflows/ci.yml)
 (`test:changed` on PRs, Playwright container + path filter + gate job, full
 `pnpm test` on `main` pushes).
 
@@ -355,8 +357,8 @@ Instructions:
 - After I confirm, implement the harness, then add a small initial suite:
   1–2 pure unit tests, 1–2 component tests with a project-appropriate
   renderWithProviders, and 1–2 Playwright smoke e2e specs for the main routes.
-- Wire CI only if this repo already has CI config; adapt to GitLab or GitHub
-  Actions as present. Skip inventing a new CI system unless I ask.
+- Wire CI only if this repo already has CI config; adapt to the existing host
+  (e.g. GitHub Actions). Skip inventing a new CI system unless I ask.
 - Add Playwright MCP + `.cursor/skills/run/SKILL.md` with this app's real
   ports/commands. Tell me to reconnect MCP when done.
 - Prefer thin smoke tests over deep coverage. Do not commit secrets or baselines.

@@ -9,8 +9,8 @@ description: >
 
 # Setup tests + AI browser automation
 
-Adapt ports, aliases,
-providers, and CI to the target repo. Do not invent extra tooling.
+Adapt ports, aliases, providers, and CI to the target repo. Do not invent
+extra tooling.
 
 If `docs/testing-setup-playbook.md` exists in the workspace, read it first and
 follow it. Otherwise follow the steps below. When reusing in another app, the
@@ -22,7 +22,7 @@ Before installing packages or writing configs, inspect `package.json`, lockfile,
 existing `*test*` / `jest` / `vitest` / `playwright` / `cypress` config, and CI.
 
 This skill’s defaults assume: **React + Vite + Vitest + Testing Library +
-Playwright + npm + GitLab-style CI + Playwright MCP**.
+Playwright + npm + GitHub Actions CI + Playwright MCP**.
 
 If the target differs (Next.js, Jest, Cypress, pnpm/yarn, Vue/Svelte, etc.):
 
@@ -30,8 +30,8 @@ If the target differs (Next.js, Jest, Cypress, pnpm/yarn, Vue/Svelte, etc.):
    tools for their framework while preserving the same layers (unit → component
    → e2e smoke → CI → optional AI browser MCP).
 2. Only proceed after they confirm.
-3. Never force Vite `loadEnv`, `npm run dev` webServer, or GitLab-only jobs onto
-   a mismatched app without adapting.
+3. Never force Vite `loadEnv`, `npm run dev` webServer, or CI-host-specific jobs
+   onto a mismatched app without adapting.
 
 ## Rollout order (do in order)
 
@@ -82,9 +82,9 @@ Specs: navigate → assert key text/URL → optional console-error collector. Th
 
 ## 4. CI
 
-**Unit (MR):** Node image matching engines; cache `.npm/`; if Alpine install `git`; `GIT_DEPTH: '0'`; `npm ci` then fetch MR target and `npm run test:changed -- origin/$TARGET`. Trigger on `src/**`, lockfile, `vitest.config.ts`.
+**Unit (PR):** Node matching engines; cache package store on lockfile; `fetch-depth: 0`; install deps then `test:changed` against the PR base branch. Trigger on `src/**`, lockfile, `vitest.config.ts`.
 
-**E2E (MR):** `mcr.microsoft.com/playwright:vX.Y.Z-noble` matching package version; `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` on install; `npm ci` + `npm run test:e2e`; artifact `playwright-report/` on failure. Path-filter to `src/**`, `e2e/**`, lockfile, `playwright.config.ts` (plus a always-green gate job if the check is required).
+**E2E (PR):** `mcr.microsoft.com/playwright:vX.Y.Z-noble` matching package version; `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1` on install; install deps + `test:e2e`; artifact `playwright-report/` on failure. Path-filter to `src/**`, `e2e/**`, lockfile, `playwright.config.ts` (plus an always-green gate job if the check is required).
 
 ## 5. AI browser automation (not CI)
 
@@ -159,8 +159,8 @@ Instructions:
 - After I confirm, implement the harness, then add a small initial suite:
   1–2 pure unit tests, 1–2 component tests with a project-appropriate
   renderWithProviders, and 1–2 Playwright smoke e2e specs for the main routes.
-- Wire CI only if this repo already has CI config; adapt to GitLab or GitHub
-  Actions as present. Skip inventing a new CI system unless I ask.
+- Wire CI only if this repo already has CI config; adapt to the existing host
+  (e.g. GitHub Actions). Skip inventing a new CI system unless I ask.
 - Add Playwright MCP + `.cursor/skills/run/SKILL.md` with this app's real
   ports/commands. Tell me to reconnect MCP when done.
 - Prefer thin smoke tests over deep coverage. Do not commit secrets or baselines.
